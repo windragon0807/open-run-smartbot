@@ -1,0 +1,29 @@
+# 환경 변수
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+
+# 가상 환경
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 데이터
+knowledge/
+chroma_db/
+
+# OS
+.DS_Store
+Thumbs.db
