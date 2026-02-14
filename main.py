@@ -11,15 +11,21 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
+from pathlib import Path
+
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from schemas import (
     ChatRequest, ChatResponse, TokenUsage, StatusResponse, ModelsResponse,
     DocumentListResponse, DocumentInfo, SyncResponse, ResetResponse,
     RAGRequest, RAGResponse, SourceDocument,
+    DocumentContentResponse, DocumentUpdateRequest, DocumentUpdateResponse,
+    LocateRequest, LocateResponse, DocumentLocation,
 )
-from rag.document_loader import list_knowledge_files
+from rag.document_loader import list_knowledge_files, KNOWLEDGE_DIR
 from rag.vector_store import reset as reset_db
 from rag.watcher import watch_knowledge_folder, sync_all
-from rag.chain import query as rag_query
+from rag.chain import query as rag_query, locate as rag_locate
 
 # .env 파일에서 환경 변수 로드
 load_dotenv()
@@ -57,6 +63,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 정적 파일 서빙 (관리 UI)
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+STATIC_DIR.mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 # === API 엔드포인트 ===
@@ -160,6 +171,69 @@ def rag_question(request: RAGRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/rag/locate", response_model=LocateResponse)
+def rag_locate_endpoint(request: LocateRequest):
+    """질문과 관련된 내용이 어느 문서의 어느 위치에 있는지 찾아줍니다."""
+    try:
+        result = rag_locate(request.question)
+        return LocateResponse(
+            answer=result.get("answer", ""),
+            locations=[DocumentLocation(**loc) for loc in result.get("locations", [])],
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# === 관리 UI ===
+
+@app.get("/manage", response_class=HTMLResponse)
+def manage_page():
+    """관리 UI 페이지를 서빙합니다."""
+    html_path = STATIC_DIR / "manage.html"
+    if not html_path.exists():
+        raise HTTPException(status_code=404, detail="관리 UI 파일이 없습니다.")
+    return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
+
+
+# === 문서 CRUD 엔드포인트 ===
+
+@app.get("/documents/{filename}", response_model=DocumentContentResponse)
+def get_document(filename: str):
+    """특정 문서의 내용을 조회합니다."""
+    file_path = KNOWLEDGE_DIR / filename
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail=f"문서를 찾을 수 없습니다: {filename}")
+    if file_path.suffix not in (".txt", ".md"):
+        raise HTTPException(status_code=400, detail="지원하지 않는 파일 형식입니다.")
+
+    content = file_path.read_text(encoding="utf-8")
+    return DocumentContentResponse(
+        filename=filename,
+        content=content,
+        size_bytes=file_path.stat().st_size,
+    )
+
+
+@app.put("/documents/{filename}", response_model=DocumentUpdateResponse)
+def update_document(filename: str, request: DocumentUpdateRequest):
+    """문서 내용을 수정합니다. 저장 후 watcher가 자동으로 벡터 DB에 반영합니다."""
+    file_path = KNOWLEDGE_DIR / filename
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail=f"문서를 찾을 수 없습니다: {filename}")
+    if file_path.suffix not in (".txt", ".md"):
+        raise HTTPException(status_code=400, detail="지원하지 않는 파일 형식입니다.")
+
+    # 파일 저장 (watcher.py가 변경을 감지하여 ChromaDB에 자동 반영)
+    file_path.write_text(request.content, encoding="utf-8")
+
+    return DocumentUpdateResponse(
+        filename=filename,
+        size_bytes=file_path.stat().st_size,
+        message=f"문서가 저장되었습니다. 벡터 DB에 자동 반영됩니다.",
+    )
 
 
 if __name__ == "__main__":

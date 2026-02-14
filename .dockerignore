@@ -1,0 +1,17 @@
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.env
+.git/
+.gitignore
+chroma_db/
+docs/
+test.http
+*.swp
+*.swo
+.DS_Store

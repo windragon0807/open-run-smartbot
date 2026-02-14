@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  bot:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      # 로컬 개발 시 knowledge 폴더를 마운트하여 실시간 반영
+      - ./knowledge:/app/knowledge
+    restart: unless-stopped

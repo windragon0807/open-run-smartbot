@@ -21,7 +21,6 @@ env/
 *.swo
 
 # 데이터
-knowledge/
 chroma_db/
 
 # OS

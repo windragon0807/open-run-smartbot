@@ -97,3 +97,58 @@ class RAGResponse(BaseModel):
     """RAG 질문 응답 모델"""
     answer: str
     sources: list[SourceDocument]
+
+
+# === 문서 관리 모델 ===
+
+class DocumentContentResponse(BaseModel):
+    """문서 내용 응답 모델"""
+    filename: str
+    content: str
+    size_bytes: int
+
+
+class DocumentUpdateRequest(BaseModel):
+    """문서 수정 요청 모델"""
+    content: str
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "content": "# 문서 제목\n\n수정된 내용입니다.",
+            }
+        }
+
+
+class DocumentUpdateResponse(BaseModel):
+    """문서 수정 응답 모델"""
+    filename: str
+    size_bytes: int
+    message: str
+
+
+# === 문서 위치 찾기 모델 ===
+
+class LocateRequest(BaseModel):
+    """문서 위치 찾기 요청 모델"""
+    question: str
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "question": "벙 만드는 방법은 어디에 있어?",
+            }
+        }
+
+
+class DocumentLocation(BaseModel):
+    """문서 위치 정보"""
+    filename: str
+    section: str
+    snippet: str
+
+
+class LocateResponse(BaseModel):
+    """문서 위치 찾기 응답 모델"""
+    answer: str
+    locations: list[DocumentLocation]
