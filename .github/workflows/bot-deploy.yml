@@ -70,4 +70,4 @@ jobs:
             --timeout=60 \
             --cpu-boost \
             --allow-unauthenticated \
-            --set-env-vars="OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}"
+            --set-env-vars="OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }},CHROMA_DIR=/tmp/chroma_db"

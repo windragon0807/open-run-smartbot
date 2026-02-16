@@ -10,8 +10,10 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 
 # ChromaDB 데이터 저장 경로
-CHROMA_DIR = Path(__file__).resolve().parent.parent / "chroma_db"
-CHROMA_DIR.mkdir(exist_ok=True)
+# Cloud Run은 컨테이너 파일시스템이 읽기 전용이므로 /tmp 사용
+_default_chroma_dir = Path(__file__).resolve().parent.parent / "chroma_db"
+CHROMA_DIR = Path(os.getenv("CHROMA_DIR", str(_default_chroma_dir)))
+CHROMA_DIR.mkdir(parents=True, exist_ok=True)
 
 # 컬렉션 이름
 COLLECTION_NAME = "smart_chatbot_docs"
