@@ -1,0 +1,92 @@
+name: Auto-update Knowledge Docs
+
+on:
+  repository_dispatch:
+    types: [frontend-changed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  analyze-and-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout bot repo
+        uses: actions/checkout@v4
+
+      - name: Checkout frontend repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.client_payload.repo }}
+          token: ${{ secrets.FRONTEND_REPO_PAT }}
+          path: _frontend
+          fetch-depth: 10
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          pip install openai python-dotenv
+
+      - name: Run AI document analysis
+        id: analyze
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          RESULT=$(python scripts/generate_docs.py \
+            --mode ci \
+            --apply \
+            --frontend-dir ${{ github.workspace }}/_frontend \
+            --before ${{ github.event.client_payload.before }} \
+            --after ${{ github.event.client_payload.after }})
+          echo "$RESULT"
+
+          HAS_CHANGES=$(echo "$RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('has_changes', False))")
+          echo "has_changes=$HAS_CHANGES" >> $GITHUB_OUTPUT
+
+          SUMMARY=$(echo "$RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('summary', ''))")
+          echo "summary=$SUMMARY" >> $GITHUB_OUTPUT
+
+      - name: Check for file changes
+        if: steps.analyze.outputs.has_changes == 'True'
+        id: check_changes
+        run: |
+          if git diff --quiet knowledge/; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.check_changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs: AI 자동 문서 업데이트"
+          branch: docs/auto-update
+          delete-branch: true
+          title: "docs: Knowledge 문서 자동 업데이트"
+          body: |
+            ## AI 문서 자동 업데이트
+
+            프론트엔드 코드 변경이 감지되어 knowledge 문서 업데이트를 제안합니다.
+
+            ### 변경 요약
+            ${{ steps.analyze.outputs.summary }}
+
+            ### 트리거 정보
+            - Frontend repo: `${{ github.event.client_payload.repo }}`
+            - Commit: `${{ github.event.client_payload.after }}`
+
+            ### 확인 사항
+            - [ ] 변경된 문서 내용이 정확한지 확인
+            - [ ] 불필요한 변경이 포함되어 있지 않은지 확인
+
+            > 이 PR은 GitHub Actions에 의해 자동 생성되었습니다.
+          labels: |
+            documentation
+            automated

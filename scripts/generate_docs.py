@@ -5,10 +5,14 @@ AI 문서 자동 업데이트 스크립트
 knowledge/ 문서 중 사양이 변경된 부분을 감지하고 업데이트를 제안합니다.
 
 사용법:
-  # CI에서 사용 (최근 커밋 기준)
-  python scripts/generate_docs.py --mode ci
+  # CI에서 사용 (크로스 리포 — frontend 리포 경로와 커밋 범위 지정)
+  python scripts/generate_docs.py --mode ci --apply \
+    --frontend-dir /path/to/frontend --before abc123 --after def456
 
-  # 관리 UI에서 사용 (특정 커밋 범위)
+  # 로컬 모노리포에서 사용 (기존 방식 호환)
+  python scripts/generate_docs.py --mode ci --apply
+
+  # 수동 분석 (적용 없이 결과만 확인)
   python scripts/generate_docs.py --mode api --from-ref HEAD~5 --to-ref HEAD
 
 출력: JSON 형식으로 변경 제안을 반환합니다.
@@ -33,40 +37,76 @@ KNOWLEDGE_DIR = BOT_DIR / "knowledge"
 REPO_ROOT = BOT_DIR.parent
 
 
-def get_git_diff(from_ref: str = "HEAD~1", to_ref: str = "HEAD") -> str:
+def get_git_diff(
+    from_ref: str = "HEAD~1",
+    to_ref: str = "HEAD",
+    frontend_dir: str | None = None,
+) -> str:
     """프론트엔드 코드의 git diff를 가져옵니다."""
     try:
-        result = subprocess.run(
-            [
-                "git", "diff", from_ref, to_ref,
-                "--", "frontend/src/",
-                # 불필요한 파일 제외
-                ":!frontend/src/**/*.css",
-                ":!frontend/src/**/*.test.*",
-                ":!frontend/src/**/*.spec.*",
-            ],
-            capture_output=True,
-            text=True,
-            cwd=str(REPO_ROOT),
-        )
+        if frontend_dir:
+            # 크로스 리포: frontend 리포에서 직접 diff (src/ 기준)
+            result = subprocess.run(
+                [
+                    "git", "diff", from_ref, to_ref,
+                    "--", "src/",
+                    ":!src/**/*.css",
+                    ":!src/**/*.test.*",
+                    ":!src/**/*.spec.*",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=frontend_dir,
+            )
+        else:
+            # 모노리포: 루트에서 frontend/src/ 기준 diff
+            result = subprocess.run(
+                [
+                    "git", "diff", from_ref, to_ref,
+                    "--", "frontend/src/",
+                    ":!frontend/src/**/*.css",
+                    ":!frontend/src/**/*.test.*",
+                    ":!frontend/src/**/*.spec.*",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=str(REPO_ROOT),
+            )
         return result.stdout
     except Exception as e:
         print(f"git diff 실행 실패: {e}", file=sys.stderr)
         return ""
 
 
-def get_changed_files(from_ref: str = "HEAD~1", to_ref: str = "HEAD") -> list[str]:
+def get_changed_files(
+    from_ref: str = "HEAD~1",
+    to_ref: str = "HEAD",
+    frontend_dir: str | None = None,
+) -> list[str]:
     """변경된 프론트엔드 파일 목록을 가져옵니다."""
     try:
-        result = subprocess.run(
-            [
-                "git", "diff", "--name-only", from_ref, to_ref,
-                "--", "frontend/src/",
-            ],
-            capture_output=True,
-            text=True,
-            cwd=str(REPO_ROOT),
-        )
+        if frontend_dir:
+            # 크로스 리포: frontend 리포에서 직접 조회 (src/ 기준)
+            result = subprocess.run(
+                [
+                    "git", "diff", "--name-only", from_ref, to_ref,
+                    "--", "src/",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=frontend_dir,
+            )
+        else:
+            # 모노리포: 루트에서 frontend/src/ 기준 조회
+            result = subprocess.run(
+                [
+                    "git", "diff", "--name-only", from_ref, to_ref,
+                    "--", "frontend/src/",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=str(REPO_ROOT),
+            )
         return [f for f in result.stdout.strip().split("\n") if f]
     except Exception:
         return []
@@ -161,11 +201,21 @@ def main():
     parser.add_argument("--from-ref", default="HEAD~1", help="시작 커밋 (기본: HEAD~1)")
     parser.add_argument("--to-ref", default="HEAD", help="끝 커밋 (기본: HEAD)")
     parser.add_argument("--apply", action="store_true", help="변경사항을 파일에 직접 적용")
+    parser.add_argument("--frontend-dir", default=None,
+                        help="크로스 리포용: frontend 리포의 로컬 경로")
+    parser.add_argument("--before", default=None,
+                        help="크로스 리포용: 변경 전 커밋 SHA")
+    parser.add_argument("--after", default=None,
+                        help="크로스 리포용: 변경 후 커밋 SHA")
     args = parser.parse_args()
 
+    # 커밋 범위 결정: --before/--after가 있으면 우선, 없으면 --from-ref/--to-ref 사용
+    from_ref = args.before if args.before else args.from_ref
+    to_ref = args.after if args.after else args.to_ref
+
     # 1. git diff 추출
-    diff = get_git_diff(args.from_ref, args.to_ref)
-    changed_files = get_changed_files(args.from_ref, args.to_ref)
+    diff = get_git_diff(from_ref, to_ref, args.frontend_dir)
+    changed_files = get_changed_files(from_ref, to_ref, args.frontend_dir)
 
     if not diff or not changed_files:
         result = {"has_changes": False, "summary": "프론트엔드 변경사항이 없습니다.", "updates": []}
