@@ -69,8 +69,9 @@ async def watch_knowledge_folder():
     """knowledge/ 폴더를 실시간으로 감시합니다."""
     logger.info(f"knowledge/ 폴더 감시 시작: {KNOWLEDGE_DIR}")
 
-    # 서버 시작 시 기존 문서 전체 동기화
-    result = sync_all()
+    # 서버 시작 시 기존 문서 전체 동기화 (블로킹 작업을 별도 스레드에서 실행)
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(None, sync_all)
     logger.info(f"초기 동기화 완료: {result['synced_files']}개 파일, {result['total_chunks']}개 청크")
 
     # 폴더 변경 감시

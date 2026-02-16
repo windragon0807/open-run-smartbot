@@ -41,8 +41,11 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """서버 시작/종료 시 실행되는 라이프사이클 관리"""
-    # 서버 시작: knowledge/ 폴더 감시 백그라운드 태스크 실행
+    logging.info("서버 시작 중...")
+    # 서버 시작: knowledge/ 폴더 감시를 백그라운드 태스크로 실행
+    # (서버가 먼저 요청을 받을 수 있도록 lifespan 완료 후 비동기 실행)
     watcher_task = asyncio.create_task(watch_knowledge_folder())
+    logging.info("서버 준비 완료 - 포트 8000에서 요청 대기 중")
     yield
     # 서버 종료: 감시 태스크 취소
     watcher_task.cancel()
@@ -256,4 +259,4 @@ def update_document(filename: str, request: DocumentUpdateRequest):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000)
