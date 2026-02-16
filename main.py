@@ -25,7 +25,7 @@ from schemas import (
 )
 from rag.document_loader import list_knowledge_files, KNOWLEDGE_DIR
 from rag.vector_store import reset as reset_db
-from rag.watcher import watch_knowledge_folder, sync_all
+from rag.watcher import watch_knowledge_folder, sync_all, is_sync_ready
 from rag.chain import query as rag_query, locate as rag_locate, edit as rag_edit
 
 # .env 파일에서 환경 변수 로드
@@ -144,10 +144,14 @@ def sync_documents():
     """knowledge/ 폴더의 모든 문서를 수동으로 벡터 DB에 동기화합니다."""
     try:
         result = sync_all()
+        errors = result.get("errors", [])
+        msg = f"{result['synced_files']}개 파일, {result['total_chunks']}개 청크가 동기화되었습니다."
+        if errors:
+            msg += f" (실패: {', '.join(errors)})"
         return SyncResponse(
             synced_files=result["synced_files"],
             total_chunks=result["total_chunks"],
-            message=f"{result['synced_files']}개 파일, {result['total_chunks']}개 청크가 동기화되었습니다.",
+            message=msg,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -166,6 +170,8 @@ def reset_documents():
 @app.post("/rag/query", response_model=RAGResponse)
 def rag_question(request: RAGRequest):
     """knowledge/ 폴더의 문서를 기반으로 질문에 답변합니다."""
+    if not is_sync_ready():
+        raise HTTPException(status_code=503, detail="문서 동기화가 아직 완료되지 않았습니다. 잠시 후 다시 시도해주세요.")
     try:
         result = rag_query(request.question)
         return RAGResponse(
@@ -180,6 +186,8 @@ def rag_question(request: RAGRequest):
 @app.post("/rag/locate", response_model=LocateResponse)
 def rag_locate_endpoint(request: LocateRequest):
     """질문과 관련된 내용이 어느 문서의 어느 위치에 있는지 찾아줍니다."""
+    if not is_sync_ready():
+        raise HTTPException(status_code=503, detail="문서 동기화가 아직 완료되지 않았습니다. 잠시 후 다시 시도해주세요.")
     try:
         result = rag_locate(request.question)
         return LocateResponse(
@@ -194,6 +202,8 @@ def rag_locate_endpoint(request: LocateRequest):
 @app.post("/rag/edit", response_model=EditResponse)
 def rag_edit_endpoint(request: EditRequest):
     """사용자의 수정 요청을 받아 AI가 수정안을 생성합니다."""
+    if not is_sync_ready():
+        raise HTTPException(status_code=503, detail="문서 동기화가 아직 완료되지 않았습니다. 잠시 후 다시 시도해주세요.")
     try:
         result = rag_edit(request.question)
         return EditResponse(

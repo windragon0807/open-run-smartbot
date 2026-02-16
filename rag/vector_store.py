@@ -2,12 +2,16 @@
 ChromaDB 벡터 저장소 관리 모듈
 """
 
+import logging
 import os
-import shutil
 from pathlib import Path
+from typing import Optional
 
+import chromadb
 from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
+
+logger = logging.getLogger("vector_store")
 
 # ChromaDB 데이터 저장 경로
 # Cloud Run은 컨테이너 파일시스템이 읽기 전용이므로 /tmp 사용
@@ -17,6 +21,18 @@ CHROMA_DIR.mkdir(parents=True, exist_ok=True)
 
 # 컬렉션 이름
 COLLECTION_NAME = "smart_chatbot_docs"
+
+# ChromaDB 클라이언트 싱글턴 (매번 새로 생성하지 않도록)
+_chroma_client: Optional[chromadb.PersistentClient] = None
+
+
+def _get_chroma_client() -> chromadb.PersistentClient:
+    """ChromaDB PersistentClient 싱글턴을 반환합니다."""
+    global _chroma_client
+    if _chroma_client is None:
+        _chroma_client = chromadb.PersistentClient(path=str(CHROMA_DIR))
+        logger.info(f"ChromaDB 클라이언트 생성: {CHROMA_DIR}")
+    return _chroma_client
 
 
 def get_embeddings() -> OpenAIEmbeddings:
@@ -30,9 +46,9 @@ def get_embeddings() -> OpenAIEmbeddings:
 def get_vector_store() -> Chroma:
     """ChromaDB 벡터 저장소 인스턴스를 반환합니다."""
     return Chroma(
+        client=_get_chroma_client(),
         collection_name=COLLECTION_NAME,
         embedding_function=get_embeddings(),
-        persist_directory=str(CHROMA_DIR),
     )
 
 
@@ -74,15 +90,24 @@ def delete_by_source(filename: str) -> None:
         filename: 삭제할 파일명 (예: "문서.txt")
     """
     vector_store = get_vector_store()
-    # source 메타데이터가 일치하는 문서를 찾아서 삭제
     results = vector_store.get(where={"source": filename})
     if results and results["ids"]:
         vector_store.delete(ids=results["ids"])
 
 
 def reset() -> None:
-    """벡터 DB를 완전히 초기화합니다."""
-    # chroma_db 폴더 삭제 후 재생성
-    if CHROMA_DIR.exists():
-        shutil.rmtree(CHROMA_DIR)
-    CHROMA_DIR.mkdir(exist_ok=True)
+    """벡터 DB를 완전히 초기화합니다. (컬렉션 삭제 방식, 파일시스템 의존 없음)"""
+    global _chroma_client
+    try:
+        client = _get_chroma_client()
+        # 컬렉션이 존재하면 삭제
+        existing = [c.name for c in client.list_collections()]
+        if COLLECTION_NAME in existing:
+            client.delete_collection(COLLECTION_NAME)
+            logger.info(f"컬렉션 삭제 완료: {COLLECTION_NAME}")
+        else:
+            logger.info(f"삭제할 컬렉션 없음: {COLLECTION_NAME}")
+    except Exception as e:
+        logger.warning(f"컬렉션 삭제 중 오류 (무시하고 계속): {e}")
+        # 클라이언트가 손상된 경우 재생성
+        _chroma_client = None

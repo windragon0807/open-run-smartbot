@@ -16,6 +16,14 @@ logger = logging.getLogger("watcher")
 # 지원하는 파일 확장자
 SUPPORTED_EXTENSIONS = {".txt", ".md"}
 
+# 동기화 상태 플래그
+_sync_ready = False
+
+
+def is_sync_ready() -> bool:
+    """초기 동기화가 완료되었는지 반환합니다."""
+    return _sync_ready
+
 
 def is_supported_file(path: Path) -> bool:
     """지원하는 파일 형식인지 확인합니다."""
@@ -30,10 +38,7 @@ def sync_file(file_path: Path) -> int:
     Returns:
         추가된 청크 수
     """
-    # 기존 데이터 삭제 (수정된 파일 대응)
     delete_by_source(file_path.name)
-
-    # 새로 청크 분할 및 저장
     documents = load_and_split(file_path)
     return add_documents(documents)
 
@@ -41,27 +46,40 @@ def sync_file(file_path: Path) -> int:
 def sync_all() -> dict:
     """
     knowledge/ 폴더의 모든 문서를 벡터 DB에 동기화합니다.
-    기존 DB를 초기화하고 전체를 다시 저장합니다.
+    기존 컬렉션을 초기화하고 전체를 다시 저장합니다.
 
     Returns:
         동기화 결과 (파일 수, 총 청크 수)
     """
-    # DB 초기화
+    global _sync_ready
+    _sync_ready = False
+
+    # 컬렉션 초기화 (파일시스템 삭제가 아닌 컬렉션 삭제 방식)
     reset_db()
 
     files = list_knowledge_files()
     total_chunks = 0
+    errors = []
 
     for file_info in files:
         file_path = KNOWLEDGE_DIR / file_info["filename"]
-        documents = load_and_split(file_path)
-        add_documents(documents)
-        total_chunks += len(documents)
-        logger.info(f"동기화 완료: {file_info['filename']} ({len(documents)}개 청크)")
+        try:
+            documents = load_and_split(file_path)
+            add_documents(documents)
+            total_chunks += len(documents)
+            logger.info(f"동기화 완료: {file_info['filename']} ({len(documents)}개 청크)")
+        except Exception as e:
+            errors.append(file_info["filename"])
+            logger.error(f"동기화 실패: {file_info['filename']} - {e}")
 
+    if errors:
+        logger.warning(f"동기화 실패 파일 {len(errors)}개: {errors}")
+
+    _sync_ready = True
     return {
-        "synced_files": len(files),
+        "synced_files": len(files) - len(errors),
         "total_chunks": total_chunks,
+        "errors": errors,
     }
 
 
@@ -69,10 +87,24 @@ async def watch_knowledge_folder():
     """knowledge/ 폴더를 실시간으로 감시합니다."""
     logger.info(f"knowledge/ 폴더 감시 시작: {KNOWLEDGE_DIR}")
 
-    # 서버 시작 시 기존 문서 전체 동기화 (블로킹 작업을 별도 스레드에서 실행)
-    loop = asyncio.get_event_loop()
-    result = await loop.run_in_executor(None, sync_all)
-    logger.info(f"초기 동기화 완료: {result['synced_files']}개 파일, {result['total_chunks']}개 청크")
+    # 서버 시작 시 기존 문서 전체 동기화 (재시도 포함)
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
+        try:
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(None, sync_all)
+            logger.info(
+                f"초기 동기화 완료 (시도 {attempt}/{max_retries}): "
+                f"{result['synced_files']}개 파일, {result['total_chunks']}개 청크"
+            )
+            if result["total_chunks"] > 0:
+                break
+            logger.warning("동기화된 청크가 0개입니다. 재시도합니다...")
+        except Exception as e:
+            logger.error(f"초기 동기화 실패 (시도 {attempt}/{max_retries}): {e}")
+
+        if attempt < max_retries:
+            await asyncio.sleep(2 * attempt)
 
     # 폴더 변경 감시
     async for changes in awatch(KNOWLEDGE_DIR):
