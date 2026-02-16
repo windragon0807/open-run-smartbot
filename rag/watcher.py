@@ -107,19 +107,24 @@ def sync_file(file_path: Path) -> int:
     return add_documents(documents)
 
 
-def sync_all() -> dict:
+def sync_all(force_reset: bool = False) -> dict:
     """
     knowledge/ 폴더의 모든 문서를 벡터 DB에 동기화합니다.
-    기존 컬렉션을 초기화하고 전체를 다시 저장합니다.
+
+    force_reset=False (기본): 증분 동기화 — 기존 데이터를 유지하면서
+    파일별로 삭제 후 재추가합니다. 동기화 중에도 기존 데이터로 서비스 가능합니다.
+
+    force_reset=True: 전체 초기화 후 재동기화 (수동 동기화 시 사용).
 
     Returns:
         동기화 결과 (파일 수, 총 청크 수)
     """
     global _sync_ready
-    _sync_ready = False
 
-    # 컬렉션 초기화 (파일시스템 삭제가 아닌 컬렉션 삭제 방식)
-    reset_db()
+    if force_reset:
+        _sync_ready = False
+        reset_db()
+        logger.info("전체 초기화 후 재동기화 시작 (force_reset=True)")
 
     files = list_knowledge_files()
     total_chunks = 0
@@ -129,6 +134,8 @@ def sync_all() -> dict:
     for file_info in files:
         file_path = KNOWLEDGE_DIR / file_info["filename"]
         try:
+            # 기존 데이터 삭제 후 재추가 (파일 단위 증분 동기화)
+            delete_by_source(file_info["filename"])
             documents = load_and_split(file_path)
             add_documents(documents)
             total_chunks += len(documents)
@@ -168,24 +175,32 @@ async def watch_knowledge_folder():
     """knowledge/ 폴더를 실시간으로 감시합니다."""
     logger.info(f"knowledge/ 폴더 감시 시작: {KNOWLEDGE_DIR}")
 
-    # 서버 시작 시 기존 문서 전체 동기화 (재시도 포함)
-    max_retries = 3
-    for attempt in range(1, max_retries + 1):
-        try:
-            loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(None, sync_all)
-            logger.info(
-                f"초기 동기화 완료 (시도 {attempt}/{max_retries}): "
-                f"{result['synced_files']}개 파일, {result['total_chunks']}개 청크"
-            )
-            if result["total_chunks"] > 0:
-                break
-            logger.warning("동기화된 청크가 0개입니다. 재시도합니다...")
-        except Exception as e:
-            logger.error(f"초기 동기화 실패 (시도 {attempt}/{max_retries}): {e}")
+    # 서버 시작 시: 기존 벡터 DB에 데이터가 있으면 건너뛰고,
+    # 비어있으면 증분 동기화 실행 (재시도 포함)
+    existing_chunks = get_chunk_count()
+    if existing_chunks > 0:
+        global _sync_ready
+        _sync_ready = True
+        logger.info(f"기존 벡터 DB 데이터 발견 ({existing_chunks}개 청크), 초기 동기화 건너뜀")
+    else:
+        logger.info("벡터 DB가 비어있습니다. 초기 동기화를 시작합니다...")
+        max_retries = 3
+        for attempt in range(1, max_retries + 1):
+            try:
+                loop = asyncio.get_event_loop()
+                result = await loop.run_in_executor(None, sync_all)
+                logger.info(
+                    f"초기 동기화 완료 (시도 {attempt}/{max_retries}): "
+                    f"{result['synced_files']}개 파일, {result['total_chunks']}개 청크"
+                )
+                if result["total_chunks"] > 0:
+                    break
+                logger.warning("동기화된 청크가 0개입니다. 재시도합니다...")
+            except Exception as e:
+                logger.error(f"초기 동기화 실패 (시도 {attempt}/{max_retries}): {e}")
 
-        if attempt < max_retries:
-            await asyncio.sleep(2 * attempt)
+            if attempt < max_retries:
+                await asyncio.sleep(2 * attempt)
 
     # 폴더 변경 감시
     async for changes in awatch(KNOWLEDGE_DIR):

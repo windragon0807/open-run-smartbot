@@ -163,9 +163,10 @@ def get_documents_status():
 
 @app.post("/documents/sync", response_model=SyncResponse)
 def sync_documents():
-    """knowledge/ 폴더의 모든 문서를 수동으로 벡터 DB에 동기화합니다."""
+    """knowledge/ 폴더의 모든 문서를 수동으로 벡터 DB에 동기화합니다.
+    기존 컬렉션을 초기화하고 전체를 다시 저장합니다."""
     try:
-        result = sync_all()
+        result = sync_all(force_reset=True)
         errors = result.get("errors", [])
         msg = f"{result['synced_files']}개 파일, {result['total_chunks']}개 청크가 동기화되었습니다."
         if errors:
