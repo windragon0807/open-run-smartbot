@@ -21,11 +21,12 @@ from schemas import (
     RAGRequest, RAGResponse, SourceDocument,
     DocumentContentResponse, DocumentUpdateRequest, DocumentUpdateResponse,
     LocateRequest, LocateResponse, DocumentLocation,
+    EditRequest, EditResponse,
 )
 from rag.document_loader import list_knowledge_files, KNOWLEDGE_DIR
 from rag.vector_store import reset as reset_db
 from rag.watcher import watch_knowledge_folder, sync_all
-from rag.chain import query as rag_query, locate as rag_locate
+from rag.chain import query as rag_query, locate as rag_locate, edit as rag_edit
 
 # .env 파일에서 환경 변수 로드
 load_dotenv()
@@ -181,6 +182,22 @@ def rag_locate_endpoint(request: LocateRequest):
         return LocateResponse(
             answer=result.get("answer", ""),
             locations=[DocumentLocation(**loc) for loc in result.get("locations", [])],
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/rag/edit", response_model=EditResponse)
+def rag_edit_endpoint(request: EditRequest):
+    """사용자의 수정 요청을 받아 AI가 수정안을 생성합니다."""
+    try:
+        result = rag_edit(request.question)
+        return EditResponse(
+            filename=result.get("filename", ""),
+            original=result.get("original", ""),
+            revised=result.get("revised", ""),
+            summary=result.get("summary", ""),
         )
 
     except Exception as e:

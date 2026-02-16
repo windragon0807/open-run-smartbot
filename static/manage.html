@@ -426,8 +426,49 @@
       border-radius: 14px;
       font-size: 13px;
       line-height: 1.6;
-      white-space: pre-wrap;
       word-break: break-word;
+    }
+
+    /* 챗봇 버블 내 마크다운 스타일 */
+    .chat-bubble h1, .chat-bubble h2, .chat-bubble h3, .chat-bubble h4 {
+      font-weight: 600;
+      margin: 6px 0 2px;
+      line-height: 1.4;
+    }
+    .chat-bubble h1 { font-size: 16px; }
+    .chat-bubble h2 { font-size: 15px; }
+    .chat-bubble h3 { font-size: 14px; }
+    .chat-bubble h4 { font-size: 13px; }
+    .chat-bubble h1:first-child, .chat-bubble h2:first-child,
+    .chat-bubble h3:first-child, .chat-bubble h4:first-child { margin-top: 0; }
+    .chat-bubble p { margin: 4px 0; }
+    .chat-bubble p:first-child { margin-top: 0; }
+    .chat-bubble p:last-child { margin-bottom: 0; }
+    .chat-bubble ul, .chat-bubble ol { margin: 4px 0; padding-left: 20px; }
+    .chat-bubble ul { list-style-type: disc; }
+    .chat-bubble ol { list-style-type: decimal; }
+    .chat-bubble li { margin: 1px 0; }
+    .chat-bubble strong { color: #f1f5f9; font-weight: 600; }
+    .chat-bubble em { font-style: italic; }
+    .chat-bubble code {
+      background: rgba(0,0,0,0.2);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    .chat-bubble pre {
+      background: rgba(0,0,0,0.25);
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin: 4px 0;
+      overflow-x: auto;
+    }
+    .chat-bubble pre code { background: none; padding: 0; }
+    .chat-bubble blockquote {
+      border-left: 3px solid #60a5fa;
+      padding: 2px 8px;
+      margin: 4px 0;
+      opacity: 0.85;
     }
 
     .chat-msg.user .chat-bubble {
@@ -548,6 +589,298 @@
     .chat-send:hover:not(:disabled) { background: #2563eb; }
     .chat-send:disabled { background: #334155; cursor: not-allowed; }
     .chat-send svg { width: 18px; height: 18px; fill: #fff; }
+
+    /* === Diff 미리보기 === */
+
+    .diff-container {
+      margin-top: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+      border: 1px solid #475569;
+      border-radius: 6px;
+      background: #0f172a;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .diff-container::-webkit-scrollbar { width: 4px; }
+    .diff-container::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+
+    .diff-header {
+      padding: 6px 10px;
+      background: #1e293b;
+      border-bottom: 1px solid #475569;
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .diff-line {
+      padding: 1px 10px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .diff-line-removed {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+    }
+
+    .diff-line-added {
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+    }
+
+    .diff-line-unchanged {
+      color: #64748b;
+    }
+
+    .diff-line-separator {
+      padding: 2px 10px;
+      color: #475569;
+      font-style: italic;
+      background: #1e293b;
+    }
+
+    .diff-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .diff-actions button {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+    }
+
+    .diff-actions button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .diff-btn-apply {
+      background: #22c55e;
+      color: #fff;
+    }
+
+    .diff-btn-apply:hover:not(:disabled) { background: #16a34a; }
+
+    .diff-btn-cancel {
+      background: #475569;
+      color: #e2e8f0;
+    }
+
+    .diff-btn-cancel:hover:not(:disabled) { background: #64748b; }
+
+    .edit-summary {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    /* === 에디터 리뷰 모드 === */
+
+    .review-view {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      padding: 0;
+      display: none;
+      background: #0f172a;
+    }
+
+    .review-view.visible { display: block; }
+
+    .review-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+    }
+
+    .review-toolbar-info {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .review-toolbar-info strong {
+      color: #f1f5f9;
+    }
+
+    .review-toolbar-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .review-toolbar-actions .btn {
+      padding: 5px 14px;
+      font-size: 12px;
+    }
+
+    .btn-success {
+      background: #22c55e;
+      color: #fff;
+    }
+
+    .btn-success:hover:not(:disabled) { background: #16a34a; }
+
+    .btn-danger {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .btn-danger:hover:not(:disabled) { background: #dc2626; }
+
+    /* Hunk */
+    .review-hunk {
+      border: 1px solid #334155;
+      border-radius: 8px;
+      margin: 16px 20px;
+      overflow: hidden;
+    }
+
+    .review-hunk.accepted {
+      border-color: #22c55e;
+      opacity: 0.6;
+    }
+
+    .review-hunk.rejected {
+      border-color: #ef4444;
+      opacity: 0.6;
+    }
+
+    .hunk-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+    }
+
+    .hunk-label {
+      font-size: 12px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .hunk-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .hunk-btn {
+      padding: 4px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+    }
+
+    .hunk-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .hunk-btn-accept {
+      background: #22c55e;
+      color: #fff;
+    }
+
+    .hunk-btn-accept:hover:not(:disabled) { background: #16a34a; }
+
+    .hunk-btn-reject {
+      background: #475569;
+      color: #e2e8f0;
+    }
+
+    .hunk-btn-reject:hover:not(:disabled) { background: #64748b; }
+
+    .hunk-status {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+
+    .hunk-status.accepted {
+      color: #4ade80;
+      background: rgba(34, 197, 94, 0.1);
+    }
+
+    .hunk-status.rejected {
+      color: #f87171;
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .hunk-lines {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .hunk-line {
+      padding: 1px 14px 1px 10px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      display: flex;
+    }
+
+    .hunk-line-num {
+      display: inline-block;
+      width: 36px;
+      text-align: right;
+      color: #475569;
+      margin-right: 12px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .hunk-line-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .hunk-line.removed {
+      background: rgba(239, 68, 68, 0.12);
+      color: #fca5a5;
+    }
+
+    .hunk-line.added {
+      background: rgba(34, 197, 94, 0.12);
+      color: #86efac;
+    }
+
+    .hunk-line.context {
+      color: #64748b;
+    }
+
+    .hunk-line.removed .hunk-line-num { color: #f87171; }
+    .hunk-line.added .hunk-line-num { color: #4ade80; }
+
+    .review-hunk-separator {
+      text-align: center;
+      padding: 4px;
+      color: #475569;
+      font-size: 11px;
+      background: #0f172a;
+    }
   </style>
 </head>
 <body>
@@ -577,12 +910,14 @@
         <span class="filename" id="currentFilename"></span>
         <button class="btn btn-tab active" id="tabEdit" onclick="switchTab('edit')">편집</button>
         <button class="btn btn-tab" id="tabPreview" onclick="switchTab('preview')">미리보기</button>
+        <button class="btn btn-tab" id="tabReview" onclick="switchTab('review')" style="display:none;">리뷰</button>
         <button class="btn btn-secondary" id="btnRevert" onclick="revertDocument()" disabled>되돌리기</button>
         <button class="btn btn-primary" id="btnSave" onclick="saveDocument()" disabled>저장</button>
       </div>
       <div class="editor-content">
         <textarea id="editor" spellcheck="false"></textarea>
         <div class="preview" id="preview"></div>
+        <div class="review-view" id="reviewView"></div>
       </div>
     </div>
   </main>
@@ -740,20 +1075,29 @@
   function switchTab(tab) {
     const editor = document.getElementById('editor');
     const preview = document.getElementById('preview');
+    const reviewView = document.getElementById('reviewView');
     const tabEdit = document.getElementById('tabEdit');
     const tabPreview = document.getElementById('tabPreview');
+    const tabReview = document.getElementById('tabReview');
+
+    // 모두 숨기기
+    editor.classList.add('hidden');
+    preview.classList.remove('visible');
+    reviewView.classList.remove('visible');
+    tabEdit.classList.remove('active');
+    tabPreview.classList.remove('active');
+    tabReview.classList.remove('active');
 
     if (tab === 'edit') {
       editor.classList.remove('hidden');
-      preview.classList.remove('visible');
       tabEdit.classList.add('active');
-      tabPreview.classList.remove('active');
-    } else {
-      editor.classList.add('hidden');
+    } else if (tab === 'preview') {
       preview.classList.add('visible');
       preview.innerHTML = renderMarkdown(editor.value);
-      tabEdit.classList.remove('active');
       tabPreview.classList.add('active');
+    } else if (tab === 'review') {
+      reviewView.classList.add('visible');
+      tabReview.classList.add('active');
     }
   }
 
@@ -878,6 +1222,485 @@
     openDocument(filename);
   }
 
+  // === 수정 의도 판별 ===
+
+  const EDIT_KEYWORDS = ['수정', '바꿔', '바꾸', '변경', '추가해', '추가하', '삭제해', '삭제하', '고쳐', '고치', '업데이트', '편집', '넣어', '빼줘', '빼서', '제거', '교체', '대체', '작성', '써줘', '써서', '적어', '지워', '지우'];
+
+  function isEditIntent(text) {
+    return EDIT_KEYWORDS.some(kw => text.includes(kw));
+  }
+
+  // === Diff 생성 (줄 단위 비교) ===
+
+  function generateDiff(original, revised) {
+    const origLines = original.split('\n');
+    const revLines = revised.split('\n');
+
+    // LCS (Longest Common Subsequence) 기반 diff
+    const m = origLines.length;
+    const n = revLines.length;
+
+    // DP 테이블 생성
+    const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        if (origLines[i - 1] === revLines[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1] + 1;
+        } else {
+          dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+        }
+      }
+    }
+
+    // 역추적으로 diff 생성
+    const diff = [];
+    let i = m, j = n;
+    while (i > 0 || j > 0) {
+      if (i > 0 && j > 0 && origLines[i - 1] === revLines[j - 1]) {
+        diff.unshift({ type: 'unchanged', text: origLines[i - 1] });
+        i--; j--;
+      } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+        diff.unshift({ type: 'added', text: revLines[j - 1] });
+        j--;
+      } else {
+        diff.unshift({ type: 'removed', text: origLines[i - 1] });
+        i--;
+      }
+    }
+
+    return diff;
+  }
+
+  function renderDiffHtml(diff, filename) {
+    // 변경된 부분 주변 context만 보여주기 (전후 2줄)
+    const CONTEXT = 2;
+    const changeIndices = new Set();
+    diff.forEach((line, idx) => {
+      if (line.type !== 'unchanged') {
+        for (let c = Math.max(0, idx - CONTEXT); c <= Math.min(diff.length - 1, idx + CONTEXT); c++) {
+          changeIndices.add(c);
+        }
+      }
+    });
+
+    const displayName = filename.replace(/^\d+_/, '').replace(/\.md$/, '').replace(/_/g, ' ');
+    let html = `<div class="diff-header">📝 ${displayName}</div>`;
+
+    let lastShown = -1;
+    diff.forEach((line, idx) => {
+      if (!changeIndices.has(idx)) return;
+
+      // 생략 구분선
+      if (lastShown !== -1 && idx - lastShown > 1) {
+        html += `<div class="diff-line diff-line-separator">···</div>`;
+      }
+      lastShown = idx;
+
+      const escaped = escapeHtml(line.text || ' ');
+      if (line.type === 'removed') {
+        html += `<div class="diff-line diff-line-removed">- ${escaped}</div>`;
+      } else if (line.type === 'added') {
+        html += `<div class="diff-line diff-line-added">+ ${escaped}</div>`;
+      } else {
+        html += `<div class="diff-line diff-line-unchanged">  ${escaped}</div>`;
+      }
+    });
+
+    return html;
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // === 수정 제안 표시 (챗봇 버블 + 에디터 리뷰 모드) ===
+
+  let pendingEdit = null; // { filename, original, revised, hunks, hunkStates }
+
+  /**
+   * diff 배열을 hunk(변경 블록) 단위로 분리합니다.
+   * 각 hunk는 변경된 줄 + 전후 context 줄을 포함합니다.
+   */
+  function splitIntoHunks(diff, contextSize) {
+    contextSize = contextSize || 3;
+    // 변경된 줄의 인덱스 수집
+    const changeIndices = [];
+    diff.forEach((line, idx) => {
+      if (line.type !== 'unchanged') changeIndices.push(idx);
+    });
+
+    if (changeIndices.length === 0) return [];
+
+    // 인접한 변경을 하나의 hunk로 묶기
+    const hunks = [];
+    let hunkStart = Math.max(0, changeIndices[0] - contextSize);
+    let hunkEnd = Math.min(diff.length - 1, changeIndices[0] + contextSize);
+
+    for (let ci = 1; ci < changeIndices.length; ci++) {
+      const nextStart = Math.max(0, changeIndices[ci] - contextSize);
+      const nextEnd = Math.min(diff.length - 1, changeIndices[ci] + contextSize);
+
+      if (nextStart <= hunkEnd + 1) {
+        // 이전 hunk와 겹치면 병합
+        hunkEnd = nextEnd;
+      } else {
+        // 새 hunk 시작
+        hunks.push({ startIdx: hunkStart, endIdx: hunkEnd });
+        hunkStart = nextStart;
+        hunkEnd = nextEnd;
+      }
+    }
+    hunks.push({ startIdx: hunkStart, endIdx: hunkEnd });
+
+    // 각 hunk에 줄 데이터 포함
+    return hunks.map((h, i) => {
+      const lines = diff.slice(h.startIdx, h.endIdx + 1);
+      // 원본 기준 줄번호 계산
+      let origLineNum = 0;
+      for (let k = 0; k < h.startIdx; k++) {
+        if (diff[k].type !== 'added') origLineNum++;
+      }
+      return {
+        id: i,
+        startIdx: h.startIdx,
+        endIdx: h.endIdx,
+        lines: lines,
+        origStartLine: origLineNum + 1,
+      };
+    });
+  }
+
+  /**
+   * 에디터 리뷰 모드에 hunk별 diff를 렌더링합니다.
+   */
+  function renderReviewMode(data) {
+    const diff = generateDiff(data.original, data.revised);
+    const hunks = splitIntoHunks(diff, 3);
+
+    if (hunks.length === 0) return;
+
+    pendingEdit = {
+      filename: data.filename,
+      original: data.original,
+      revised: data.revised,
+      diff: diff,
+      hunks: hunks,
+      hunkStates: hunks.map(() => 'pending'), // 'pending' | 'accepted' | 'rejected'
+    };
+
+    const reviewView = document.getElementById('reviewView');
+    let html = '';
+
+    // 상단 툴바
+    const displayName = data.filename.replace(/^\d+_/, '').replace(/\.md$/, '').replace(/_/g, ' ');
+    html += `<div class="review-toolbar">
+      <div class="review-toolbar-info">
+        <strong>${displayName}</strong> — ${hunks.length}개 변경 블록
+      </div>
+      <div class="review-toolbar-actions">
+        <button class="btn btn-success" onclick="reviewAcceptAll()">모두 수락</button>
+        <button class="btn btn-danger" onclick="reviewRejectAll()">모두 거부</button>
+        <button class="btn btn-primary" onclick="reviewApply()">저장</button>
+        <button class="btn btn-secondary" onclick="reviewExit()">닫기</button>
+      </div>
+    </div>`;
+
+    // 각 hunk 렌더링
+    hunks.forEach((hunk, idx) => {
+      html += `<div class="review-hunk" id="review-hunk-${idx}">`;
+      html += `<div class="hunk-header">
+        <span class="hunk-label">변경 ${idx + 1} (${hunk.origStartLine}번 줄 부근)</span>
+        <div class="hunk-actions" id="hunk-actions-${idx}">
+          <button class="hunk-btn hunk-btn-accept" onclick="reviewHunkAccept(${idx})">수락</button>
+          <button class="hunk-btn hunk-btn-reject" onclick="reviewHunkReject(${idx})">거부</button>
+        </div>
+      </div>`;
+
+      html += `<div class="hunk-lines">`;
+      let origNum = hunk.origStartLine;
+      let revNum = hunk.origStartLine; // 대략적 줄번호
+      // 정확한 revNum 계산
+      let addedBefore = 0, removedBefore = 0;
+      for (let k = 0; k < hunk.startIdx; k++) {
+        if (diff[k].type === 'added') addedBefore++;
+        if (diff[k].type === 'removed') removedBefore++;
+      }
+      revNum = hunk.origStartLine + addedBefore - removedBefore;
+
+      hunk.lines.forEach(line => {
+        const escaped = escapeHtml(line.text || ' ');
+        if (line.type === 'removed') {
+          html += `<div class="hunk-line removed"><span class="hunk-line-num">${origNum}</span><span class="hunk-line-text">- ${escaped}</span></div>`;
+          origNum++;
+        } else if (line.type === 'added') {
+          html += `<div class="hunk-line added"><span class="hunk-line-num">${revNum}</span><span class="hunk-line-text">+ ${escaped}</span></div>`;
+          revNum++;
+        } else {
+          html += `<div class="hunk-line context"><span class="hunk-line-num">${origNum}</span><span class="hunk-line-text">  ${escaped}</span></div>`;
+          origNum++;
+          revNum++;
+        }
+      });
+
+      html += `</div></div>`;
+    });
+
+    reviewView.innerHTML = html;
+  }
+
+  // === Hunk 수락/거부 ===
+
+  function reviewHunkAccept(idx) {
+    if (!pendingEdit) return;
+    pendingEdit.hunkStates[idx] = 'accepted';
+    updateHunkUI(idx);
+  }
+
+  function reviewHunkReject(idx) {
+    if (!pendingEdit) return;
+    pendingEdit.hunkStates[idx] = 'rejected';
+    updateHunkUI(idx);
+  }
+
+  function reviewAcceptAll() {
+    if (!pendingEdit) return;
+    pendingEdit.hunkStates = pendingEdit.hunkStates.map(() => 'accepted');
+    pendingEdit.hunkStates.forEach((_, idx) => updateHunkUI(idx));
+  }
+
+  function reviewRejectAll() {
+    if (!pendingEdit) return;
+    pendingEdit.hunkStates = pendingEdit.hunkStates.map(() => 'rejected');
+    pendingEdit.hunkStates.forEach((_, idx) => updateHunkUI(idx));
+  }
+
+  function updateHunkUI(idx) {
+    const hunkEl = document.getElementById(`review-hunk-${idx}`);
+    const actionsEl = document.getElementById(`hunk-actions-${idx}`);
+    if (!hunkEl || !actionsEl) return;
+
+    const state = pendingEdit.hunkStates[idx];
+    hunkEl.classList.remove('accepted', 'rejected');
+
+    if (state === 'accepted') {
+      hunkEl.classList.add('accepted');
+      actionsEl.innerHTML = `<span class="hunk-status accepted">수락됨</span>
+        <button class="hunk-btn hunk-btn-reject" onclick="reviewHunkReject(${idx})" style="font-size:10px;padding:2px 8px;">되돌리기</button>`;
+    } else if (state === 'rejected') {
+      hunkEl.classList.add('rejected');
+      actionsEl.innerHTML = `<span class="hunk-status rejected">거부됨</span>
+        <button class="hunk-btn hunk-btn-accept" onclick="reviewHunkAccept(${idx})" style="font-size:10px;padding:2px 8px;">되돌리기</button>`;
+    }
+  }
+
+  /**
+   * 수락된 hunk만 반영하여 최종 문서를 생성합니다.
+   */
+  function buildMergedContent() {
+    if (!pendingEdit) return '';
+
+    const diff = pendingEdit.diff;
+    const hunks = pendingEdit.hunks;
+    const states = pendingEdit.hunkStates;
+
+    // 각 diff 줄이 어느 hunk에 속하는지 매핑
+    const lineHunkMap = {}; // diffIdx -> hunkIdx
+    hunks.forEach((hunk, hIdx) => {
+      for (let i = hunk.startIdx; i <= hunk.endIdx; i++) {
+        if (diff[i].type !== 'unchanged') {
+          lineHunkMap[i] = hIdx;
+        }
+      }
+    });
+
+    const result = [];
+    diff.forEach((line, idx) => {
+      const hunkIdx = lineHunkMap[idx];
+
+      if (hunkIdx === undefined) {
+        // hunk에 속하지 않는 줄 (unchanged) -> 원본 유지
+        if (line.type !== 'added') {
+          result.push(line.text);
+        }
+      } else {
+        const state = states[hunkIdx];
+        if (state === 'accepted') {
+          // 수락: added 줄 포함, removed 줄 제외
+          if (line.type === 'added' || line.type === 'unchanged') {
+            result.push(line.text);
+          }
+          // removed는 건너뜀
+        } else {
+          // 거부 또는 pending: 원본 유지
+          if (line.type === 'removed' || line.type === 'unchanged') {
+            result.push(line.text);
+          }
+          // added는 건너뜀
+        }
+      }
+    });
+
+    return result.join('\n');
+  }
+
+  /**
+   * 리뷰 결과를 저장합니다.
+   */
+  async function reviewApply() {
+    if (!pendingEdit) return;
+
+    const accepted = pendingEdit.hunkStates.filter(s => s === 'accepted').length;
+    const pending = pendingEdit.hunkStates.filter(s => s === 'pending').length;
+
+    if (pending > 0) {
+      if (!confirm(`아직 결정하지 않은 변경 블록이 ${pending}개 있습니다. 미결정 블록은 거부 처리됩니다. 계속하시겠습니까?`)) return;
+    }
+
+    if (accepted === 0) {
+      showToast('수락된 변경 블록이 없습니다.', 'error');
+      return;
+    }
+
+    const mergedContent = buildMergedContent();
+
+    try {
+      const res = await fetch(`${API}/documents/${encodeURIComponent(pendingEdit.filename)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: mergedContent }),
+      });
+
+      if (!res.ok) throw new Error('저장 실패');
+
+      // 에디터 갱신
+      document.getElementById('editor').value = mergedContent;
+      originalContent = mergedContent;
+      hasChanges = false;
+      updateButtons();
+
+      const total = pendingEdit.hunkStates.length;
+      showToast(`${accepted}/${total}개 변경 블록이 반영되었습니다.`, 'success');
+
+      // 사이드바 갱신
+      loadDocuments();
+
+      // 챗봇에 결과 알림
+      notifyReviewResult(accepted, total);
+
+      // 리뷰 모드 종료
+      reviewExit();
+
+    } catch (e) {
+      showToast('저장에 실패했습니다.', 'error');
+    }
+  }
+
+  function reviewExit() {
+    // 리뷰 탭 숨기기
+    document.getElementById('tabReview').style.display = 'none';
+    pendingEdit = null;
+    switchTab('preview');
+  }
+
+  /**
+   * 챗봇에 리뷰 결과를 알립니다.
+   */
+  function notifyReviewResult(accepted, total) {
+    const container = document.getElementById('chatMessages');
+    // 기존 리뷰 안내 버블의 액션 영역 업데이트
+    const reviewActions = document.getElementById('chat-review-actions');
+    if (reviewActions) {
+      reviewActions.innerHTML = `<span style="color:#4ade80; font-size:12px; font-weight:600;">✓ ${accepted}/${total}개 변경이 반영되었습니다</span>`;
+    }
+  }
+
+  // === 챗봇에서 수정 제안 시 에디터 리뷰 모드 진입 ===
+
+  function showEditProposal(data) {
+    const container = document.getElementById('chatMessages');
+    const msg = document.createElement('div');
+    msg.className = 'chat-msg bot';
+
+    const diff = generateDiff(data.original, data.revised);
+    const diffHasChanges = diff.some(d => d.type !== 'unchanged');
+
+    if (!diffHasChanges || !data.revised) {
+      msg.innerHTML = `<div class="chat-bubble">${renderMarkdown(data.summary || '요청하신 내용에 해당하는 변경사항을 찾을 수 없습니다.')}</div>`;
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
+      return;
+    }
+
+    // 챗봇 버블: 요약 + 간단한 diff + 문서에서 리뷰하기 버튼
+    const hunks = splitIntoHunks(diff, 2);
+    const displayName = data.filename.replace(/^\d+_/, '').replace(/\.md$/, '').replace(/_/g, ' ');
+    const diffHtml = renderDiffHtml(diff, data.filename);
+
+    msg.innerHTML = `<div class="chat-bubble">
+      <div class="edit-summary">${renderMarkdown(data.summary)}</div>
+      <div class="diff-container">${diffHtml}</div>
+      <div class="diff-actions" id="chat-review-actions">
+        <button class="diff-btn-apply" onclick="openReviewMode()">문서에서 리뷰하기</button>
+        <button class="diff-btn-cancel" onclick="cancelReviewFromChat()">취소</button>
+      </div>
+    </div>`;
+
+    container.appendChild(msg);
+    container.scrollTop = container.scrollHeight;
+
+    // 리뷰 데이터를 임시 저장 (에디터 리뷰 모드 진입용)
+    window._pendingReviewData = data;
+  }
+
+  function openReviewMode() {
+    const data = window._pendingReviewData;
+    if (!data) return;
+
+    // 해당 문서 열기 (이미 열려있으면 건너뜀)
+    if (currentFile !== data.filename) {
+      // 문서를 직접 로드
+      currentFile = data.filename;
+      originalContent = data.original;
+      document.getElementById('editor').value = data.original;
+      document.getElementById('currentFilename').textContent = data.filename;
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('editorPanel').style.display = 'flex';
+      hasChanges = false;
+      updateButtons();
+
+      // 사이드바 활성 표시
+      document.querySelectorAll('.doc-item').forEach(el => el.classList.remove('active'));
+      document.querySelector(`.doc-item[data-filename="${data.filename}"]`)?.classList.add('active');
+    }
+
+    // 리뷰 모드 렌더링
+    renderReviewMode(data);
+
+    // 리뷰 탭 표시 및 전환
+    document.getElementById('tabReview').style.display = '';
+    switchTab('review');
+
+    // 챗봇 닫기
+    const panel = document.getElementById('chatPanel');
+    if (panel.classList.contains('open')) {
+      toggleChat();
+    }
+
+    window._pendingReviewData = null;
+  }
+
+  function cancelReviewFromChat() {
+    const actionsEl = document.getElementById('chat-review-actions');
+    if (actionsEl) {
+      actionsEl.innerHTML = `<span style="color:#94a3b8; font-size:12px;">수정이 취소되었습니다</span>`;
+    }
+    window._pendingReviewData = null;
+  }
+
+  // === 챗봇 메시지 전송 (수정 의도 분기) ===
+
   async function sendChat() {
     const input = document.getElementById('chatInput');
     const question = input.value.trim();
@@ -894,29 +1717,45 @@
     appendLoadingMessage();
 
     try {
-      const res = await fetch(`${API}/rag/locate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question }),
-      });
+      if (isEditIntent(question)) {
+        // === 수정 요청 ===
+        const res = await fetch(`${API}/rag/edit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question }),
+        });
 
-      if (!res.ok) throw new Error('응답 오류');
-      const data = await res.json();
+        if (!res.ok) throw new Error('응답 오류');
+        const data = await res.json();
 
-      removeLoadingMessage();
+        removeLoadingMessage();
+        showEditProposal(data);
 
-      // 답변 표시
-      let botContent = data.answer;
-      if (data.locations && data.locations.length > 0) {
-        botContent += '\n' + createLocationCards(data.locations);
+      } else {
+        // === 일반 질문 (위치 찾기) ===
+        const res = await fetch(`${API}/rag/locate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question }),
+        });
+
+        if (!res.ok) throw new Error('응답 오류');
+        const data = await res.json();
+
+        removeLoadingMessage();
+
+        let botContent = renderMarkdown(data.answer);
+        if (data.locations && data.locations.length > 0) {
+          botContent += createLocationCards(data.locations);
+        }
+
+        const container = document.getElementById('chatMessages');
+        const msg = document.createElement('div');
+        msg.className = 'chat-msg bot';
+        msg.innerHTML = `<div class="chat-bubble">${botContent}</div>`;
+        container.appendChild(msg);
+        container.scrollTop = container.scrollHeight;
       }
-
-      const container = document.getElementById('chatMessages');
-      const msg = document.createElement('div');
-      msg.className = 'chat-msg bot';
-      msg.innerHTML = `<div class="chat-bubble">${botContent}</div>`;
-      container.appendChild(msg);
-      container.scrollTop = container.scrollHeight;
 
     } catch (e) {
       removeLoadingMessage();

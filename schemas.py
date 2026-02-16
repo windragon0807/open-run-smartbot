@@ -152,3 +152,25 @@ class LocateResponse(BaseModel):
     """문서 위치 찾기 응답 모델"""
     answer: str
     locations: list[DocumentLocation]
+
+
+# === 문서 수정 모델 ===
+
+class EditRequest(BaseModel):
+    """문서 수정 요청 모델"""
+    question: str
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "question": "벙 만들기 문서에서 최소 인원을 3명으로 바꿔줘",
+            }
+        }
+
+
+class EditResponse(BaseModel):
+    """문서 수정 제안 응답 모델"""
+    filename: str
+    original: str
+    revised: str
+    summary: str
