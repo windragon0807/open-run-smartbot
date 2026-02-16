@@ -67,5 +67,7 @@ jobs:
             --cpu=1 \
             --min-instances=0 \
             --max-instances=3 \
+            --timeout=60 \
+            --cpu-boost \
             --allow-unauthenticated \
             --set-env-vars="OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}"

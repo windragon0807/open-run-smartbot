@@ -41,14 +41,9 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """서버 시작/종료 시 실행되는 라이프사이클 관리"""
-    logging.info("서버 시작 중...")
-    # 서버 시작: knowledge/ 폴더 감시를 백그라운드 태스크로 실행
-    # (서버가 먼저 요청을 받을 수 있도록 lifespan 완료 후 비동기 실행)
-    watcher_task = asyncio.create_task(watch_knowledge_folder())
-    logging.info("서버 준비 완료 - 포트 8000에서 요청 대기 중")
+    logging.info("서버 시작 완료 - 포트 8000에서 요청 대기 중")
     yield
-    # 서버 종료: 감시 태스크 취소
-    watcher_task.cancel()
+    logging.info("서버 종료 중...")
 
 
 # FastAPI 앱 생성
@@ -58,6 +53,11 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# 서버 시작 후 백그라운드에서 knowledge/ 폴더 감시 시작
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(watch_knowledge_folder())
 
 # CORS 설정 (프론트엔드 연동을 위해)
 app.add_middleware(
