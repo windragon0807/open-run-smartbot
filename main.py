@@ -22,10 +22,11 @@ from schemas import (
     DocumentContentResponse, DocumentUpdateRequest, DocumentUpdateResponse,
     LocateRequest, LocateResponse, DocumentLocation,
     EditRequest, EditResponse,
+    SyncStatusResponse, FileSyncStatus, SyncEvent, DbHealth,
 )
 from rag.document_loader import list_knowledge_files, KNOWLEDGE_DIR
 from rag.vector_store import reset as reset_db
-from rag.watcher import watch_knowledge_folder, sync_all, is_sync_ready
+from rag.watcher import watch_knowledge_folder, sync_all, is_sync_ready, get_sync_status
 from rag.chain import query as rag_query, locate as rag_locate, edit as rag_edit
 
 # .env 파일에서 환경 변수 로드
@@ -137,6 +138,27 @@ def get_documents():
         documents=[DocumentInfo(**f) for f in files],
         count=len(files),
     )
+
+
+@app.get("/documents/status", response_model=SyncStatusResponse)
+def get_documents_status():
+    """문서 동기화 상태를 조회합니다."""
+    try:
+        status = get_sync_status()
+        return SyncStatusResponse(
+            is_ready=status["is_ready"],
+            last_sync_at=status["last_sync_at"],
+            last_sync_result=status["last_sync_result"],
+            synced_files=status["synced_files"],
+            total_chunks=status["total_chunks"],
+            db_chunk_count=status["db_chunk_count"],
+            errors=status["errors"],
+            file_statuses=[FileSyncStatus(**f) for f in status["file_statuses"]],
+            recent_events=[SyncEvent(**e) for e in status["recent_events"]],
+            db_health=DbHealth(**status["db_health"]),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/documents/sync", response_model=SyncResponse)

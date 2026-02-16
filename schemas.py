@@ -174,3 +174,49 @@ class EditResponse(BaseModel):
     original: str
     revised: str
     summary: str
+
+
+# === 동기화 상태 모델 ===
+
+class SyncEvent(BaseModel):
+    """동기화 이벤트 로그"""
+    timestamp: str
+    type: str
+    filename: str
+    success: bool
+    detail: str = ""
+
+
+class FileSyncStatus(BaseModel):
+    """파일별 동기화 상태"""
+    filename: str
+    size_bytes: int
+    synced_at: str | None = None
+    has_error: bool = False
+
+
+class DbHealth(BaseModel):
+    """벡터 DB 건강 상태"""
+    chroma_connected: bool = False
+    chroma_error: str | None = None
+    collection_exists: bool = False
+    chunk_count: int = -1
+    chroma_dir: str = ""
+    chroma_dir_exists: bool = False
+    chroma_dir_writable: bool = False
+    embedding_model_ok: bool = False
+    embedding_error: str | None = None
+
+
+class SyncStatusResponse(BaseModel):
+    """동기화 상태 전체 응답 모델"""
+    is_ready: bool
+    last_sync_at: str | None = None
+    last_sync_result: str | None = None
+    synced_files: int = 0
+    total_chunks: int = 0
+    db_chunk_count: int = 0
+    errors: list[str] = []
+    file_statuses: list[FileSyncStatus] = []
+    recent_events: list[SyncEvent] = []
+    db_health: DbHealth = DbHealth()

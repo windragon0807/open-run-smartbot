@@ -881,14 +881,525 @@
       font-size: 11px;
       background: #0f172a;
     }
+
+    /* === 동기화 상태 대시보드 === */
+
+    .sync-dashboard {
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      max-height: 0;
+    }
+
+    .sync-dashboard.open {
+      max-height: 600px;
+    }
+
+    .sync-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .sync-toggle:hover {
+      background: #334155;
+      color: #e2e8f0;
+    }
+
+    .sync-toggle .indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .sync-toggle .indicator.ready { background: #4ade80; }
+    .sync-toggle .indicator.syncing { background: #facc15; animation: pulse 1s infinite; }
+    .sync-toggle .indicator.error { background: #f87171; }
+    .sync-toggle .indicator.unknown { background: #64748b; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .sync-toggle .chevron {
+      transition: transform 0.2s;
+      width: 14px;
+      height: 14px;
+    }
+
+    .sync-toggle.expanded .chevron {
+      transform: rotate(180deg);
+    }
+
+    .sync-dashboard-inner {
+      padding: 16px 24px 20px;
+    }
+
+    /* 상태 카드 그리드 */
+    .sync-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .sync-card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .sync-card-label {
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .sync-card-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f1f5f9;
+      line-height: 1;
+    }
+
+    .sync-card-value.success { color: #4ade80; }
+    .sync-card-value.warning { color: #facc15; }
+    .sync-card-value.error { color: #f87171; }
+    .sync-card-value.muted { color: #64748b; }
+
+    .sync-card-sub {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    /* 파일 동기화 상태 테이블 */
+    .sync-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sync-file-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .sync-file-table th {
+      text-align: left;
+      padding: 8px 12px;
+      background: #0f172a;
+      color: #64748b;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #334155;
+    }
+
+    .sync-file-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+      color: #cbd5e1;
+    }
+
+    .sync-file-table tr:hover td {
+      background: rgba(51, 65, 85, 0.3);
+    }
+
+    .sync-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .sync-badge.ok {
+      background: rgba(74, 222, 128, 0.1);
+      color: #4ade80;
+    }
+
+    .sync-badge.err {
+      background: rgba(248, 113, 113, 0.1);
+      color: #f87171;
+    }
+
+    .sync-badge.pending {
+      background: rgba(250, 204, 21, 0.1);
+      color: #facc15;
+    }
+
+    /* 이벤트 로그 */
+    .sync-events {
+      margin-top: 16px;
+    }
+
+    .sync-event-list {
+      max-height: 160px;
+      overflow-y: auto;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+    }
+
+    .sync-event-list::-webkit-scrollbar { width: 4px; }
+    .sync-event-list::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+
+    .sync-event-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      font-size: 12px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+    }
+
+    .sync-event-item:last-child { border-bottom: none; }
+
+    .sync-event-time {
+      color: #475569;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      flex-shrink: 0;
+      width: 72px;
+    }
+
+    .sync-event-icon {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .sync-event-icon.ok { background: #4ade80; }
+    .sync-event-icon.err { background: #f87171; }
+
+    .sync-event-text {
+      color: #94a3b8;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .sync-event-file {
+      color: #60a5fa;
+      font-weight: 500;
+    }
+
+    /* 수동 동기화 버튼 */
+    .sync-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-sync {
+      padding: 5px 14px;
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-sync:hover:not(:disabled) { background: #2563eb; }
+    .btn-sync:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-sync .sync-icon {
+      width: 14px;
+      height: 14px;
+      transition: transform 0.3s;
+    }
+
+    .btn-sync.syncing .sync-icon {
+      animation: spin 0.8s linear infinite;
+    }
+
+    .sync-auto-refresh {
+      font-size: 11px;
+      color: #475569;
+    }
+
+    /* DB 건강 상태 */
+    .db-health {
+      margin-top: 16px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .db-health-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+    }
+
+    .db-health-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .db-health-overall {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 10px;
+    }
+
+    .db-health-overall.healthy {
+      background: rgba(74, 222, 128, 0.1);
+      color: #4ade80;
+    }
+
+    .db-health-overall.degraded {
+      background: rgba(250, 204, 21, 0.1);
+      color: #facc15;
+    }
+
+    .db-health-overall.unhealthy {
+      background: rgba(248, 113, 113, 0.1);
+      color: #f87171;
+    }
+
+    .db-health-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1px;
+      background: #334155;
+    }
+
+    .db-health-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 14px;
+      background: #0f172a;
+      font-size: 12px;
+    }
+
+    .db-health-item-label {
+      color: #64748b;
+    }
+
+    .db-health-item-value {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .db-health-item-value.ok { color: #4ade80; }
+    .db-health-item-value.warn { color: #facc15; }
+    .db-health-item-value.fail { color: #f87171; }
+    .db-health-item-value.muted { color: #64748b; }
+
+    .db-health-error {
+      padding: 8px 14px;
+      background: rgba(248, 113, 113, 0.08);
+      border-top: 1px solid rgba(248, 113, 113, 0.2);
+      font-size: 12px;
+      color: #f87171;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .db-health-error-icon {
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* 청크 불일치 경고 배너 */
+    .sync-warning-banner {
+      display: none;
+      padding: 10px 16px;
+      background: rgba(250, 204, 21, 0.08);
+      border: 1px solid rgba(250, 204, 21, 0.2);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #facc15;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sync-warning-banner.visible {
+      display: flex;
+    }
+
+    .sync-warning-banner svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
 
 <header>
   <h1>OpenRun Bot - 문서 관리</h1>
-  <span id="statusText" class="status"></span>
+  <div style="display:flex; align-items:center; gap:12px;">
+    <button class="sync-toggle" id="syncToggle" onclick="toggleSyncDashboard()">
+      <span class="indicator unknown" id="syncIndicator"></span>
+      <span id="syncToggleLabel">동기화 상태</span>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <span id="statusText" class="status"></span>
+  </div>
 </header>
+
+<!-- 동기화 상태 대시보드 -->
+<div class="sync-dashboard" id="syncDashboard">
+  <div class="sync-dashboard-inner">
+    <!-- 경고 배너 -->
+    <div class="sync-warning-banner" id="syncWarningBanner">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span id="syncWarningText"></span>
+    </div>
+
+    <!-- 상태 카드 -->
+    <div class="sync-cards">
+      <div class="sync-card">
+        <div class="sync-card-label">동기화 상태</div>
+        <div class="sync-card-value" id="cardSyncStatus">-</div>
+        <div class="sync-card-sub" id="cardSyncTime">-</div>
+      </div>
+      <div class="sync-card">
+        <div class="sync-card-label">동기화 파일</div>
+        <div class="sync-card-value" id="cardSyncFiles">-</div>
+        <div class="sync-card-sub" id="cardSyncFileSub">-</div>
+      </div>
+      <div class="sync-card">
+        <div class="sync-card-label">벡터 DB 청크</div>
+        <div class="sync-card-value" id="cardChunks">-</div>
+        <div class="sync-card-sub" id="cardChunkSub">-</div>
+      </div>
+      <div class="sync-card">
+        <div class="sync-card-label">에러</div>
+        <div class="sync-card-value" id="cardErrors">-</div>
+        <div class="sync-card-sub" id="cardErrorSub">-</div>
+      </div>
+    </div>
+
+    <!-- 파일별 상태 + 이벤트 로그 -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <!-- 파일별 동기화 상태 -->
+      <div>
+        <div class="sync-section-title">
+          <span>파일별 동기화 상태</span>
+          <div class="sync-actions">
+            <button class="btn-sync" id="btnManualSync" onclick="manualSync()">
+              <svg class="sync-icon" viewBox="0 0 24 24" fill="none"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              수동 동기화
+            </button>
+            <span class="sync-auto-refresh">30초마다 자동 갱신</span>
+          </div>
+        </div>
+        <div style="max-height: 200px; overflow-y: auto; border: 1px solid #334155; border-radius: 8px;">
+          <table class="sync-file-table">
+            <thead>
+              <tr>
+                <th>파일명</th>
+                <th>크기</th>
+                <th>상태</th>
+                <th>마지막 동기화</th>
+              </tr>
+            </thead>
+            <tbody id="syncFileTableBody">
+              <tr><td colspan="4" style="text-align:center; color:#475569; padding:20px;">로딩 중...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 최근 이벤트 로그 -->
+      <div class="sync-events">
+        <div class="sync-section-title">최근 동기화 이벤트</div>
+        <div class="sync-event-list" id="syncEventList">
+          <div class="sync-event-item" style="justify-content:center; color:#475569; padding:20px;">로딩 중...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DB 건강 상태 -->
+    <div class="db-health" id="dbHealthSection">
+      <div class="db-health-header">
+        <span class="db-health-title">
+          벡터 DB 상태
+        </span>
+        <span class="db-health-overall" id="dbHealthOverall">확인 중...</span>
+      </div>
+      <div class="db-health-grid" id="dbHealthGrid">
+        <div class="db-health-item">
+          <span class="db-health-item-label">ChromaDB 연결</span>
+          <span class="db-health-item-value muted" id="dbHealthChroma">-</span>
+        </div>
+        <div class="db-health-item">
+          <span class="db-health-item-label">컬렉션 존재</span>
+          <span class="db-health-item-value muted" id="dbHealthCollection">-</span>
+        </div>
+        <div class="db-health-item">
+          <span class="db-health-item-label">임베딩 모델 (OpenAI)</span>
+          <span class="db-health-item-value muted" id="dbHealthEmbedding">-</span>
+        </div>
+        <div class="db-health-item">
+          <span class="db-health-item-label">저장 경로</span>
+          <span class="db-health-item-value muted" id="dbHealthDir">-</span>
+        </div>
+        <div class="db-health-item">
+          <span class="db-health-item-label">경로 쓰기 가능</span>
+          <span class="db-health-item-value muted" id="dbHealthWritable">-</span>
+        </div>
+        <div class="db-health-item">
+          <span class="db-health-item-label">저장된 청크</span>
+          <span class="db-health-item-value muted" id="dbHealthChunks">-</span>
+        </div>
+      </div>
+      <div class="db-health-error" id="dbHealthError" style="display:none;">
+        <span class="db-health-error-icon">⚠️</span>
+        <span id="dbHealthErrorText"></span>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="container">
   <!-- 사이드바 -->
@@ -1768,8 +2279,365 @@
     }
   }
 
+  // === 동기화 상태 대시보드 ===
+
+  let syncDashboardOpen = false;
+  let syncRefreshTimer = null;
+
+  function toggleSyncDashboard() {
+    const dashboard = document.getElementById('syncDashboard');
+    const toggle = document.getElementById('syncToggle');
+    syncDashboardOpen = !syncDashboardOpen;
+
+    if (syncDashboardOpen) {
+      dashboard.classList.add('open');
+      toggle.classList.add('expanded');
+      loadSyncStatus();
+      // 30초마다 자동 갱신
+      syncRefreshTimer = setInterval(loadSyncStatus, 30000);
+    } else {
+      dashboard.classList.remove('open');
+      toggle.classList.remove('expanded');
+      if (syncRefreshTimer) {
+        clearInterval(syncRefreshTimer);
+        syncRefreshTimer = null;
+      }
+    }
+  }
+
+  function formatTimeAgo(isoString) {
+    if (!isoString) return '-';
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHour / 24);
+
+    if (diffSec < 60) return `${diffSec}초 전`;
+    if (diffMin < 60) return `${diffMin}분 전`;
+    if (diffHour < 24) return `${diffHour}시간 전`;
+    return `${diffDay}일 전`;
+  }
+
+  function formatLocalTime(isoString) {
+    if (!isoString) return '-';
+    const date = new Date(isoString);
+    return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  function getEventTypeLabel(type) {
+    const labels = {
+      'full_sync': '전체 동기화',
+      'file_added': '파일 추가',
+      'file_modified': '파일 수정',
+      'file_deleted': '파일 삭제',
+      'file_sync_error': '동기화 오류',
+      'file_delete_error': '삭제 오류',
+    };
+    return labels[type] || type;
+  }
+
+  async function loadSyncStatus() {
+    try {
+      const res = await fetch(`${API}/documents/status`);
+      if (!res.ok) throw new Error('상태 조회 실패');
+      const data = await res.json();
+      renderSyncDashboard(data);
+      updateSyncIndicator(data);
+    } catch (e) {
+      updateSyncIndicator({ is_ready: false, last_sync_result: 'error' });
+    }
+  }
+
+  function updateSyncIndicator(data) {
+    const indicator = document.getElementById('syncIndicator');
+    const label = document.getElementById('syncToggleLabel');
+
+    indicator.className = 'indicator';
+
+    // DB 건강 상태가 심각하면 최우선 표시
+    if (data.db_health && (!data.db_health.chroma_connected || !data.db_health.embedding_model_ok)) {
+      indicator.classList.add('error');
+      label.textContent = 'DB 이상 감지';
+      return;
+    }
+
+    // DB가 비어있으면 경고
+    if (data.is_ready && data.db_chunk_count === 0) {
+      indicator.classList.add('error');
+      label.textContent = 'DB 비어있음';
+      return;
+    }
+
+    if (!data.is_ready) {
+      indicator.classList.add('syncing');
+      label.textContent = '동기화 중...';
+    } else if (data.last_sync_result === 'success') {
+      // 청크 불일치 체크
+      if (data.total_chunks > 0 && data.db_chunk_count >= 0 && data.total_chunks !== data.db_chunk_count) {
+        indicator.classList.add('error');
+        label.textContent = '청크 불일치';
+      } else {
+        indicator.classList.add('ready');
+        label.textContent = '동기화 정상';
+      }
+    } else if (data.last_sync_result === 'partial') {
+      indicator.classList.add('error');
+      label.textContent = '일부 오류';
+    } else if (data.last_sync_result === 'failed' || data.last_sync_result === 'error') {
+      indicator.classList.add('error');
+      label.textContent = '동기화 실패';
+    } else {
+      indicator.classList.add('unknown');
+      label.textContent = '동기화 상태';
+    }
+  }
+
+  function renderSyncDashboard(data) {
+    // 상태 카드 - 동기화 상태
+    const cardStatus = document.getElementById('cardSyncStatus');
+    const cardTime = document.getElementById('cardSyncTime');
+
+    if (!data.is_ready) {
+      cardStatus.textContent = '동기화 중';
+      cardStatus.className = 'sync-card-value warning';
+    } else if (data.last_sync_result === 'success') {
+      cardStatus.textContent = '정상';
+      cardStatus.className = 'sync-card-value success';
+    } else if (data.last_sync_result === 'partial') {
+      cardStatus.textContent = '일부 오류';
+      cardStatus.className = 'sync-card-value warning';
+    } else if (data.last_sync_result === 'failed') {
+      cardStatus.textContent = '실패';
+      cardStatus.className = 'sync-card-value error';
+    } else {
+      cardStatus.textContent = '대기';
+      cardStatus.className = 'sync-card-value muted';
+    }
+    cardTime.textContent = data.last_sync_at ? formatTimeAgo(data.last_sync_at) : '아직 동기화되지 않음';
+
+    // 상태 카드 - 파일 수
+    const cardFiles = document.getElementById('cardSyncFiles');
+    const cardFileSub = document.getElementById('cardSyncFileSub');
+    cardFiles.textContent = data.synced_files;
+    cardFiles.className = 'sync-card-value' + (data.synced_files > 0 ? '' : ' muted');
+    const totalFiles = data.file_statuses ? data.file_statuses.length : 0;
+    cardFileSub.textContent = `전체 ${totalFiles}개 중`;
+
+    // 상태 카드 - 청크
+    const cardChunks = document.getElementById('cardChunks');
+    const cardChunkSub = document.getElementById('cardChunkSub');
+    cardChunks.textContent = data.db_chunk_count >= 0 ? data.db_chunk_count : '?';
+    cardChunks.className = 'sync-card-value' + (data.db_chunk_count > 0 ? '' : ' warning');
+    cardChunkSub.textContent = data.total_chunks > 0 ? `예상: ${data.total_chunks}개` : '-';
+
+    // 상태 카드 - 에러
+    const cardErrors = document.getElementById('cardErrors');
+    const cardErrorSub = document.getElementById('cardErrorSub');
+    const errorCount = data.errors ? data.errors.length : 0;
+    cardErrors.textContent = errorCount;
+    cardErrors.className = 'sync-card-value' + (errorCount > 0 ? ' error' : ' success');
+    cardErrorSub.textContent = errorCount > 0 ? data.errors.join(', ') : '오류 없음';
+
+    // 파일별 상태 테이블
+    const tbody = document.getElementById('syncFileTableBody');
+    if (data.file_statuses && data.file_statuses.length > 0) {
+      tbody.innerHTML = data.file_statuses.map(f => {
+        const displayName = f.filename.replace(/^\d+_/, '').replace(/\.md$/, '').replace(/_/g, ' ');
+        let badge;
+        if (f.has_error) {
+          badge = '<span class="sync-badge err">오류</span>';
+        } else if (f.synced_at) {
+          badge = '<span class="sync-badge ok">정상</span>';
+        } else {
+          badge = '<span class="sync-badge pending">미동기화</span>';
+        }
+        return `<tr>
+          <td title="${f.filename}">${displayName}</td>
+          <td>${formatSize(f.size_bytes)}</td>
+          <td>${badge}</td>
+          <td style="font-size:12px; color:#64748b;">${f.synced_at ? formatTimeAgo(f.synced_at) : '-'}</td>
+        </tr>`;
+      }).join('');
+    } else {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#475569; padding:20px;">문서 없음</td></tr>';
+    }
+
+    // 이벤트 로그
+    const eventList = document.getElementById('syncEventList');
+    if (data.recent_events && data.recent_events.length > 0) {
+      // 최신 이벤트가 위로
+      const reversed = [...data.recent_events].reverse();
+      eventList.innerHTML = reversed.map(e => {
+        const iconClass = e.success ? 'ok' : 'err';
+        const displayName = e.filename.replace(/^\d+_/, '').replace(/\.md$/, '').replace(/_/g, ' ');
+        const detail = e.detail ? ` — ${e.detail}` : '';
+        return `<div class="sync-event-item">
+          <span class="sync-event-time">${formatLocalTime(e.timestamp)}</span>
+          <span class="sync-event-icon ${iconClass}"></span>
+          <span class="sync-event-text">
+            <span class="sync-event-file">${displayName}</span>
+            ${getEventTypeLabel(e.type)}${detail}
+          </span>
+        </div>`;
+      }).join('');
+    } else {
+      eventList.innerHTML = '<div class="sync-event-item" style="justify-content:center; color:#475569; padding:20px;">이벤트 없음</div>';
+    }
+
+    // 경고 배너
+    renderWarningBanner(data);
+
+    // DB 건강 상태
+    if (data.db_health) {
+      renderDbHealth(data.db_health, data);
+    }
+  }
+
+  function renderWarningBanner(data) {
+    const banner = document.getElementById('syncWarningBanner');
+    const text = document.getElementById('syncWarningText');
+    const warnings = [];
+
+    // 청크 수 불일치 경고
+    if (data.total_chunks > 0 && data.db_chunk_count >= 0 && data.total_chunks !== data.db_chunk_count) {
+      warnings.push(`벡터 DB 청크 수 불일치: 예상 ${data.total_chunks}개 → 실제 ${data.db_chunk_count}개. 수동 동기화를 권장합니다.`);
+    }
+
+    // DB가 비어있는 경고
+    if (data.is_ready && data.db_chunk_count === 0) {
+      warnings.push('벡터 DB가 비어있습니다. 챗봇이 질문에 답변할 수 없습니다. 수동 동기화를 실행해주세요.');
+    }
+
+    // 동기화 준비 안됨
+    if (!data.is_ready && data.last_sync_at) {
+      warnings.push('문서 동기화가 진행 중입니다. 완료될 때까지 챗봇 응답이 제한됩니다.');
+    }
+
+    // DB 건강 문제
+    if (data.db_health) {
+      if (!data.db_health.chroma_connected) {
+        warnings.push('ChromaDB에 연결할 수 없습니다. 서버 로그를 확인해주세요.');
+      }
+      if (data.db_health.chroma_connected && !data.db_health.collection_exists && data.is_ready) {
+        warnings.push('벡터 DB 컬렉션이 존재하지 않습니다. 수동 동기화를 실행해주세요.');
+      }
+      if (!data.db_health.embedding_model_ok) {
+        warnings.push(`임베딩 모델 오류: ${data.db_health.embedding_error || '알 수 없는 오류'}. 새 문서 동기화가 불가능합니다.`);
+      }
+      if (!data.db_health.chroma_dir_writable) {
+        warnings.push('ChromaDB 저장 경로에 쓰기 권한이 없습니다.');
+      }
+    }
+
+    if (warnings.length > 0) {
+      text.textContent = warnings.join(' | ');
+      banner.classList.add('visible');
+    } else {
+      banner.classList.remove('visible');
+    }
+  }
+
+  function renderDbHealth(health, data) {
+    const overall = document.getElementById('dbHealthOverall');
+
+    // 종합 판정
+    const allOk = health.chroma_connected && health.collection_exists && health.embedding_model_ok && health.chunk_count > 0;
+    const critical = !health.chroma_connected || !health.embedding_model_ok;
+
+    if (allOk) {
+      overall.textContent = '정상';
+      overall.className = 'db-health-overall healthy';
+    } else if (critical) {
+      overall.textContent = '비정상';
+      overall.className = 'db-health-overall unhealthy';
+    } else {
+      overall.textContent = '주의';
+      overall.className = 'db-health-overall degraded';
+    }
+
+    // 개별 항목
+    setHealthItem('dbHealthChroma', health.chroma_connected, '연결됨', '연결 실패');
+    setHealthItem('dbHealthCollection', health.collection_exists, '존재', '없음');
+    setHealthItem('dbHealthEmbedding', health.embedding_model_ok, '정상', health.embedding_error ? '오류' : '미확인');
+
+    const dirEl = document.getElementById('dbHealthDir');
+    dirEl.textContent = health.chroma_dir || '-';
+    dirEl.className = 'db-health-item-value' + (health.chroma_dir_exists ? ' ok' : ' fail');
+
+    setHealthItem('dbHealthWritable', health.chroma_dir_writable, '가능', '불가');
+
+    const chunksEl = document.getElementById('dbHealthChunks');
+    chunksEl.textContent = health.chunk_count >= 0 ? `${health.chunk_count}개` : '조회 실패';
+    chunksEl.className = 'db-health-item-value' + (health.chunk_count > 0 ? ' ok' : health.chunk_count === 0 ? ' warn' : ' fail');
+
+    // 에러 메시지
+    const errorSection = document.getElementById('dbHealthError');
+    const errorText = document.getElementById('dbHealthErrorText');
+    const errors = [];
+    if (health.chroma_error) errors.push(`ChromaDB: ${health.chroma_error}`);
+    if (health.embedding_error) errors.push(`임베딩: ${health.embedding_error}`);
+
+    if (errors.length > 0) {
+      errorText.textContent = errors.join(' | ');
+      errorSection.style.display = 'flex';
+    } else {
+      errorSection.style.display = 'none';
+    }
+  }
+
+  function setHealthItem(id, isOk, okText, failText) {
+    const el = document.getElementById(id);
+    if (isOk) {
+      el.textContent = `✓ ${okText}`;
+      el.className = 'db-health-item-value ok';
+    } else {
+      el.textContent = `✗ ${failText}`;
+      el.className = 'db-health-item-value fail';
+    }
+  }
+
+  async function manualSync() {
+    const btn = document.getElementById('btnManualSync');
+    btn.disabled = true;
+    btn.classList.add('syncing');
+    btn.querySelector('.sync-icon')?.setAttribute('style', '');
+
+    try {
+      const res = await fetch(`${API}/documents/sync`, { method: 'POST' });
+      if (!res.ok) throw new Error('동기화 실패');
+      const data = await res.json();
+      showToast(data.message, 'success');
+      // 상태 갱신
+      await loadSyncStatus();
+      // 문서 목록도 갱신
+      loadDocuments();
+    } catch (e) {
+      showToast('수동 동기화에 실패했습니다.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('syncing');
+    }
+  }
+
+  // 페이지 로드 시 동기화 상태 인디케이터 업데이트
+  async function initSyncIndicator() {
+    try {
+      const res = await fetch(`${API}/documents/status`);
+      if (res.ok) {
+        const data = await res.json();
+        updateSyncIndicator(data);
+      }
+    } catch (e) {
+      // 무시
+    }
+  }
+
   // 초기 로드
   loadDocuments();
+  initSyncIndicator();
 </script>
 
 </body>

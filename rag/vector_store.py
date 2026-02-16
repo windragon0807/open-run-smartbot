@@ -67,6 +67,91 @@ def add_documents(documents: list) -> int:
     return len(documents)
 
 
+def get_chunk_count() -> int:
+    """
+    벡터 저장소에 저장된 총 청크 수를 반환합니다.
+
+    Returns:
+        저장된 문서 청크 수 (오류 시 -1)
+    """
+    try:
+        client = _get_chroma_client()
+        collection = client.get_or_create_collection(name=COLLECTION_NAME)
+        return collection.count()
+    except Exception:
+        return -1
+
+
+def check_db_health() -> dict:
+    """
+    벡터 DB의 건강 상태를 종합 진단합니다.
+
+    Returns:
+        {
+            "chroma_connected": bool,       # ChromaDB 클라이언트 연결 가능 여부
+            "chroma_error": str | None,     # 연결 오류 메시지
+            "collection_exists": bool,      # 컬렉션 존재 여부
+            "chunk_count": int,             # 저장된 청크 수 (-1이면 조회 실패)
+            "chroma_dir": str,              # ChromaDB 저장 경로
+            "chroma_dir_exists": bool,      # 저장 경로 존재 여부
+            "chroma_dir_writable": bool,    # 저장 경로 쓰기 가능 여부
+            "embedding_model_ok": bool,     # 임베딩 모델(OpenAI API) 사용 가능 여부
+            "embedding_error": str | None,  # 임베딩 오류 메시지
+        }
+    """
+    result = {
+        "chroma_connected": False,
+        "chroma_error": None,
+        "collection_exists": False,
+        "chunk_count": -1,
+        "chroma_dir": str(CHROMA_DIR),
+        "chroma_dir_exists": CHROMA_DIR.exists(),
+        "chroma_dir_writable": os.access(str(CHROMA_DIR), os.W_OK) if CHROMA_DIR.exists() else False,
+        "embedding_model_ok": False,
+        "embedding_error": None,
+    }
+
+    # 1. ChromaDB 연결 확인
+    try:
+        client = _get_chroma_client()
+        client.heartbeat()
+        result["chroma_connected"] = True
+    except Exception as e:
+        result["chroma_error"] = str(e)
+        return result
+
+    # 2. 컬렉션 존재 여부 확인
+    try:
+        existing = [c.name for c in client.list_collections()]
+        result["collection_exists"] = COLLECTION_NAME in existing
+    except Exception as e:
+        result["chroma_error"] = f"컬렉션 목록 조회 실패: {e}"
+
+    # 3. 청크 수 조회
+    try:
+        if result["collection_exists"]:
+            collection = client.get_collection(name=COLLECTION_NAME)
+            result["chunk_count"] = collection.count()
+        else:
+            result["chunk_count"] = 0
+    except Exception as e:
+        result["chroma_error"] = f"청크 수 조회 실패: {e}"
+
+    # 4. 임베딩 모델 확인 (OpenAI API 키 유효성)
+    try:
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            result["embedding_error"] = "OPENAI_API_KEY 환경변수가 설정되지 않음"
+        else:
+            embeddings = get_embeddings()
+            embeddings.embed_query("health check")
+            result["embedding_model_ok"] = True
+    except Exception as e:
+        result["embedding_error"] = str(e)
+
+    return result
+
+
 def search(query: str, k: int = 3) -> list:
     """
     질문과 가장 관련 있는 문서 청크를 검색합니다.
