@@ -2,7 +2,9 @@
 요청/응답 스키마 모델 정의
 """
 
-from pydantic import BaseModel
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field
 
 
 # === 요청 모델 ===
@@ -97,6 +99,54 @@ class RAGResponse(BaseModel):
     """RAG 질문 응답 모델"""
     answer: str
     sources: list[SourceDocument]
+
+
+# === Assistant Agent 모델 ===
+
+class AssistantHistoryItem(BaseModel):
+    """Assistant 대화 히스토리 항목"""
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class ActionNavigation(BaseModel):
+    """실행 후 이동 정보"""
+    type: Literal["route", "modal"]
+    modalKey: str | None = None
+    href: str | None = None
+    prefill: dict[str, Any] | None = None
+
+
+class ActionProposal(BaseModel):
+    """실행 제안 정보"""
+    actionKey: str
+    summary: str
+    params: dict[str, Any] = Field(default_factory=dict)
+    missingFields: list[str] = Field(default_factory=list)
+    dangerLevel: Literal["low", "high"] = "low"
+    navigation: ActionNavigation | None = None
+    confidence: float | None = None
+
+
+class AssistantRequest(BaseModel):
+    """Assistant 요청 모델"""
+    message: str
+    history: list[AssistantHistoryItem] = Field(default_factory=list)
+    pendingAction: dict[str, Any] | None = None
+
+
+class AssistantResponse(BaseModel):
+    """Assistant 응답 모델"""
+    kind: Literal[
+        "qa",
+        "action_collect",
+        "action_ready",
+        "action_navigate",
+        "action_unavailable",
+    ]
+    reply: str
+    sources: list[SourceDocument] = Field(default_factory=list)
+    proposal: ActionProposal | None = None
 
 
 # === 문서 관리 모델 ===
