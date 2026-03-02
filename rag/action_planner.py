@@ -87,6 +87,11 @@ ACTION_CATALOG: dict[str, dict[str, Any]] = {
         "danger": "low",
         "mode": "execute",
     },
+    "challenge.open_page": {
+        "required": [],
+        "danger": "low",
+        "mode": "navigate",
+    },
     "bung.send_feedback": {
         "required": ["bungId", "targetUserIds"],
         "danger": "low",
@@ -122,6 +127,8 @@ PLANNER_PROMPT = ChatPromptTemplate.from_messages(
             "- actionKey는 catalog에 있는 값만 사용\n"
             "- 불확실하면 kind=qa, confidence를 낮게 설정\n"
             "- 원샷 불가 액션은 action_navigate 또는 action_unavailable로 반환\n"
+            "- 화면/페이지 이동 요청은 action_navigate로 우선 처리\n"
+            "- 예: '도전과제 페이지로 데려가줘' -> actionKey='challenge.open_page'\n"
             "- params에는 찾은 값만 넣고, 없는 값은 누락\n"
             "- missingFields에는 필수 파라미터 중 비어있는 값을 넣음\n"
             "- 텍스트에 특정 벙/멤버/도전과제가 명시되지 않으면 ID를 추측하지 말 것\n"
@@ -239,6 +246,12 @@ def _default_navigation(action_key: str, params: dict[str, Any]) -> dict[str, An
                 "initialStep": "invitation",
             },
         }
+
+    if action_key == "challenge.open_page":
+        return {
+            "type": "route",
+            "href": "/challenges",
+        }
     return None
 
 
@@ -272,9 +285,69 @@ def _fallback_ready_reply(action_key: str) -> str:
 
 
 def _fallback_navigate_reply(action_key: str) -> str:
+    if action_key == "challenge.open_page":
+        return "도전과제 페이지로 이동할게요. 아래 `부탁하기`를 눌러주세요."
     if action_key == "bung.invite_members":
         return "이 요청은 자동 실행이 아직 지원되지 않습니다. 관련 화면으로 이동해 안내를 이어가겠습니다."
     return "이 요청은 채팅 원샷 실행 대신 관련 화면에서 마무리하는 방식이 안전합니다. 아래 `부탁하기`를 눌러 이동하세요."
+
+
+def _looks_like_navigation_request(message: str) -> bool:
+    lowered = message.lower()
+    normalized = lowered.replace(" ", "")
+    nav_tokens = (
+        "페이지",
+        "화면",
+        "탭",
+        "메뉴",
+        "이동",
+        "데려가",
+        "들어가",
+        "가줘",
+        "열어",
+        "보여",
+    )
+    return any(token in lowered or token in normalized for token in nav_tokens)
+
+
+def _needs_action_clarification(message: str) -> bool:
+    lowered = message.lower()
+    normalized = lowered.replace(" ", "")
+    if any(token in normalized for token in ("뭐야", "무엇", "어떻게", "왜", "언제", "어디", "설명", "알려")):
+        return False
+    if "?" in message and not _looks_like_navigation_request(message):
+        return False
+    action_tokens = (
+        "해줘",
+        "해주세요",
+        "부탁",
+        "실행",
+        "만들어",
+        "생성",
+        "완료",
+        "취소",
+        "참여",
+        "삭제",
+        "넘겨",
+        "내보내",
+        "탈퇴",
+        "받아",
+        "남겨",
+    )
+    return _looks_like_navigation_request(message) or any(token in normalized for token in action_tokens)
+
+
+def _clarify_action_response() -> dict[str, Any]:
+    return {
+        "kind": "action_collect",
+        "reply": (
+            "실행 요청으로 이해했지만 어떤 동작인지 확신이 낮아요. "
+            "원하는 동작을 한 번만 더 구체적으로 말해 주세요. "
+            "예: '도전과제 페이지로 이동해줘', 'OO 벙 완료해줘'"
+        ),
+        "sources": [],
+        "proposal": None,
+    }
 
 
 def _proposal_response(
@@ -349,6 +422,18 @@ def _rule_based_plan(message: str, pending_action: dict[str, Any] | None) -> dic
     lowered = message.lower()
     normalized = lowered.replace(" ", "")
     is_command = _looks_like_command(lowered)
+    is_navigation = _looks_like_navigation_request(message)
+
+    if is_navigation and (
+        "도전과제" in lowered or "챌린지" in lowered or "challenge" in normalized
+    ):
+        return _proposal_response(
+            action_key="challenge.open_page",
+            parsed_params={},
+            pending_action=pending_action,
+            confidence=0.95,
+            summary="도전과제 화면 이동",
+        )
 
     if (is_command or "도와" in lowered) and "벙" in lowered and ("만들" in lowered or "생성" in lowered):
         params: dict[str, Any] = {}
@@ -442,6 +527,8 @@ def plan_assistant(
     parsed = _safe_json_loads(raw)
 
     if not isinstance(parsed, dict):
+        if _needs_action_clarification(message):
+            return _clarify_action_response()
         return _qa_response(message)
 
     kind = parsed.get("kind", "qa")
@@ -449,6 +536,8 @@ def plan_assistant(
     reply = parsed.get("reply", "").strip()
 
     if kind == "qa" or confidence < CONFIDENCE_THRESHOLD:
+        if _needs_action_clarification(message):
+            return _clarify_action_response()
         return _qa_response(message)
 
     proposal = parsed.get("proposal")
@@ -457,6 +546,8 @@ def plan_assistant(
 
     action_key = proposal.get("actionKey")
     if action_key not in ACTION_CATALOG:
+        if _needs_action_clarification(message):
+            return _clarify_action_response()
         return _qa_response(message)
 
     summary = proposal.get("summary")
