@@ -5,7 +5,7 @@ Smart Chatbot - FastAPI 서버
 import asyncio
 import logging
 import os
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -45,8 +45,14 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 async def lifespan(app: FastAPI):
     """서버 시작/종료 시 실행되는 라이프사이클 관리"""
     logging.info("서버 시작 완료 - 포트 8000에서 요청 대기 중")
-    yield
-    logging.info("서버 종료 중...")
+    watcher_task = asyncio.create_task(watch_knowledge_folder())
+    try:
+        yield
+    finally:
+        watcher_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await watcher_task
+        logging.info("서버 종료 중...")
 
 
 # FastAPI 앱 생성
@@ -56,11 +62,6 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
-
-# 서버 시작 후 백그라운드에서 knowledge/ 폴더 감시 시작
-@app.on_event("startup")
-async def startup_event():
-    asyncio.create_task(watch_knowledge_folder())
 
 # CORS 설정 (프론트엔드 연동을 위해)
 app.add_middleware(
