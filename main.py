@@ -23,7 +23,7 @@ from schemas import (
     LocateRequest, LocateResponse, DocumentLocation,
     EditRequest, EditResponse,
     SyncStatusResponse, FileSyncStatus, SyncEvent, DbHealth,
-    AssistantRequest, AssistantResponse, ActionProposal,
+    AssistantRequest, AssistantResponse, ActionProposal, AssistantUiHints,
 )
 from rag.document_loader import list_knowledge_files, KNOWLEDGE_DIR
 from rag.vector_store import reset as reset_db
@@ -220,13 +220,19 @@ def rag_assistant(request: AssistantRequest):
             message=request.message,
             history=[item.model_dump() for item in request.history],
             pending_action=request.pendingAction,
+            conversation_state=request.conversationState,
         )
         proposal = result.get("proposal")
         return AssistantResponse(
             kind=result.get("kind", "qa"),
+            lane=result.get("lane", "qa"),
             reply=result.get("reply", ""),
             sources=[SourceDocument(**s) for s in result.get("sources", [])],
             proposal=ActionProposal(**proposal) if isinstance(proposal, dict) else None,
+            statePatch=result.get("statePatch") if isinstance(result.get("statePatch"), dict) else None,
+            uiHints=AssistantUiHints(**result.get("uiHints", {}))
+            if isinstance(result.get("uiHints"), dict)
+            else AssistantUiHints(),
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

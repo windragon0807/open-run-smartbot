@@ -133,20 +133,31 @@ class AssistantRequest(BaseModel):
     message: str
     history: list[AssistantHistoryItem] = Field(default_factory=list)
     pendingAction: dict[str, Any] | None = None
+    conversationState: dict[str, Any] | None = None
+
+
+class AssistantUiHints(BaseModel):
+    """Assistant UI 힌트"""
+    showSources: bool = False
+    showActionButtons: bool = False
 
 
 class AssistantResponse(BaseModel):
     """Assistant 응답 모델"""
     kind: Literal[
+        "chat",
         "qa",
         "action_collect",
         "action_ready",
         "action_navigate",
         "action_unavailable",
     ]
+    lane: Literal["chat", "qa", "read", "action"] = "qa"
     reply: str
     sources: list[SourceDocument] = Field(default_factory=list)
     proposal: ActionProposal | None = None
+    statePatch: dict[str, Any] | None = None
+    uiHints: AssistantUiHints = Field(default_factory=AssistantUiHints)
 
 
 # === 문서 관리 모델 ===

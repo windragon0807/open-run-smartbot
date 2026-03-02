@@ -66,6 +66,18 @@ python main.py
 docker compose up --build
 ```
 
+### Assistant 회귀 테스트
+
+실행형/조회형/QA/일반대화 라우팅을 한 번에 검증합니다.
+
+```bash
+# bot 서버 실행 상태에서
+python scripts/assistant_router_smoke.py --endpoint http://localhost:8000/rag/assistant
+
+# 플래키 확인(2회 반복)
+python scripts/assistant_router_smoke.py --endpoint http://localhost:8000/rag/assistant --rounds 2
+```
+
 ### 환경 변수
 
 | 변수명 | 설명 | 기본값 |
